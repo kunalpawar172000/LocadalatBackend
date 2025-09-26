@@ -11,7 +11,7 @@ dotenv.config({ path: "./config/config.env" });
 
 const PORT = process.env.PORT;
 console.log(process.env.PORT);
-app.use(cors({origin:"http://localhost:3000"}));
+app.use(cors({ origin: ["http://localhost:3000", "https://test-react-vercel-nine.vercel.app"] }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
