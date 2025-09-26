@@ -1,0 +1,12 @@
+import express from 'express';
+import { getUsers, createUser } from '../controller/user.js';
+
+
+const router = express.Router();
+
+// Route to get user profile
+router.get('/profile', getUsers);
+// Route to update user profile
+router.post('/profile', createUser);
+
+export default router;
