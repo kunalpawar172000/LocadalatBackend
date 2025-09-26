@@ -40,6 +40,6 @@ export const getUsers = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching users:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        res.status(500).json({ isSuccess: false, message: "Internal Server Error test mongodb connection" });
     }
 };
