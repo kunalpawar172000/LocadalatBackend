@@ -7,6 +7,6 @@ const router = express.Router();
 // Route to get user profile
 router.get('/profile', getUsers);
 // Route to update user profile
-router.post('/profile', createUser);
+router.post('/create', createUser);
 
 export default router;
