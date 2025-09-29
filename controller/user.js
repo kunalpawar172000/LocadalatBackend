@@ -31,7 +31,7 @@ export const createUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find({}, "_id email"); // only id and email
 
         res.status(200).json({
             success: true,
@@ -43,6 +43,7 @@ export const getUsers = async (req, res) => {
         res.status(500).json({ isSuccess: false, message: "Internal Server Error test mongodb connection" });
     }
 };
+
 
 export const login = async (req, res) => {
     try {
