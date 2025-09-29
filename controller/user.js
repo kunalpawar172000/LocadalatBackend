@@ -43,3 +43,24 @@ export const getUsers = async (req, res) => {
         res.status(500).json({ isSuccess: false, message: "Internal Server Error test mongodb connection" });
     }
 };
+
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+
+        // compare password directly
+        if (user.password !== password) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        res.json({ message: "Login successful", user: { id: user._id, name: user.name, email: user.email } });
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+}
