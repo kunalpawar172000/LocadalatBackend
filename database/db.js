@@ -3,13 +3,14 @@ import dotenv from "dotenv";
 dotenv.config({ path: "./config/config.env" });
 const connectDB = () => {
 
-    console.log(process.env.MONGOURL);
+    return new Promise((resolve, reject) => {
+        mongoose.connect(process.env.MONGOURL, {}).then(() => {
+            resolve("Database connected");
+        }).catch((err) => {
+            reject("Database connection failed", err);
+        });
+    })
 
-    mongoose.connect(process.env.MONGOURL, {}).then(() => {
-        console.log("Database connected");
-    }).catch((err) => {
-        console.log("Database connection failed", err);
-    });
 }
 
 export default connectDB;
