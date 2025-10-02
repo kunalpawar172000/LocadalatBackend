@@ -20,7 +20,7 @@ connectDB()
         app.use(cors({
             origin: [
                 "http://localhost:3000",
-                "https://test-react-vercel-nine.vercel.app"
+               "https://locadalat-frontend-dev.vercel.app"
             ],
             credentials: true // allow cookies for cross-domain
         }));
