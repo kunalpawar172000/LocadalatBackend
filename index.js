@@ -10,7 +10,8 @@ dotenv.config({ path: "./config/config.env" });
 //  Connect to database
 connectDB()
     .then((database) => {
-        console.log(database,"SS");
+        console.log(
+            "Test SS");
 
         //  Create Express app
         const app = express();
