@@ -1,5 +1,7 @@
 import User from "../models/user.js";
-
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config({ path: "./../config/config.env" });
 export const createUser = async (req, res) => {
     try {
         const { password, email } = req.body;
@@ -48,6 +50,12 @@ export const getUsers = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log("secret", process.env.JWT_SECRET);
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        // console.log("Login attempt:", email);
 
         // check if user exists
         const user = await User.findOne({ email });
@@ -55,13 +63,29 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "User not found" });
         }
 
-        // compare password directly
         if (user.password !== password) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Email or password is invalid" });
         }
 
-        res.json({ message: "Login successful", user: { id: user._id,  email: user.email } });
+
+        // create JWT token
+        const token = jwt.sign(
+            { email: user.email, id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "1m" }
+        );
+
+        // send cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // true only in prod
+            sameSite: "none",
+        });
+
+        res.json({ message: "Login successful", user: { id: user._id, email: user.email } });
+
     } catch (err) {
+        console.error("Login error:", err);
         res.status(500).json({ message: "Server error" });
     }
-}
+};
