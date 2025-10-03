@@ -7,6 +7,7 @@ import {authenticateToken} from "./middleware/auth.js";
 //  Load environment variables first
 dotenv.config({ path: "./config/config.env" });
 
+
 //  Connect to database
 connectDB()
     .then((database) => {
@@ -18,8 +19,7 @@ connectDB()
 
         //  Middleware
         app.use(cors({
-            origin: ["http://localhost:3000","https://locadalat-frontend-dev.vercel.app"
-            ],
+            origin: "https://locadalat-frontend-dev.vercel.app",
             credentials: true // allow cookies for cross-domain
         }));
         app.use(express.json());
