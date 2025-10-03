@@ -18,9 +18,7 @@ connectDB()
 
         //  Middleware
         app.use(cors({
-            origin: [
-                "http://localhost:3000",
-               "https://locadalat-frontend-dev.vercel.app"
+            origin: ["http://localhost:3000","https://locadalat-frontend-dev.vercel.app"
             ],
             credentials: true // allow cookies for cross-domain
         }));
