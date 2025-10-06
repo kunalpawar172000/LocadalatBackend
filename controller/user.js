@@ -1,6 +1,8 @@
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+
 dotenv.config({ path: "./../config/config.env" });
 export const createUser = async (req, res) => {
     try {
@@ -59,7 +61,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "User not found" });
         }
 
-        if (user.password !== password) {
+        if (user.password !== password || bcrypt.compareSync(password, user.password)) {
             return res.status(400).json({ message: "Email or password is invalid" });
         }
 
@@ -72,7 +74,7 @@ export const login = async (req, res) => {
         );
 
         // send cookie
-        res.cookie("access_token", token,{httpOnly:true,sameSite:"none",secure:true});
+        res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
 
 
         res.json({ message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });

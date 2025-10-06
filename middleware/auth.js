@@ -1,25 +1,40 @@
+// auth.js
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config({ path: "./../config/config.env" });
-const authenticateToken = (req, res, next) => {
-    const token = req.cookies?.access_token || req.header("Authorization")?.replace("Bearer ", ""); // support both cookie and header
 
-    console.log("Authenticating token:", token);
-    if (!token) {
-        console.log("No token provided");
+// full paths since middleware is at "/"
+const PUBLIC_PATHS = [
+  "/api/user/login",
+  "/api/user/forgot-password",
+  "/api/health",
+  "*" // optional: to skip catch-all "No API found" route
+];
 
-        return res.status(401).json({ message: "No token provided" });
-    }
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Token verified", decoded);
+export const authenticateToken = (req, res, next) => {
+  // Skip OPTIONS requests
+//   if (req.method === "OPTIONS") {
+//     return next();
+//   }
 
-        req.user = decoded; // attach user info to request  
-        next();
-    } catch (err) {
-        console.log("Invalid token", err.message, err.name);
+  // Skip if request matches public paths
+  if (PUBLIC_PATHS.includes(req.path)) {
+    return next();
+  }
 
-        return res.status(401).json({ message: "Invalid token" });
-    }
+  const token =
+    req.cookies?.access_token ||
+    req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload;
+    return next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
 };
-export default authenticateToken;
