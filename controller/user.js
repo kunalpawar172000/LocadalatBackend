@@ -8,7 +8,7 @@ dotenv.config({ path: "./../config/config.env" });
 export const createUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        console.log(password,"Password");
+        console.log(password, "Password");
         const hashedPassword = bcrypt.hashSync(password, 10);
 
         // Basic validation
@@ -22,7 +22,7 @@ export const createUser = async (req, res) => {
             return res.status(409).json({ isSuccess: false, message: "User with this email already exists" });
         }
 
-        const newUser = new User({ name, email, password:hashedPassword });
+        const newUser = new User({ name, email, password: hashedPassword });
         await newUser.save();
 
         res.status(201).json({
@@ -55,7 +55,7 @@ export const getUsers = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log("secret", process.env.JWT_SECRET);
+ 
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
@@ -63,22 +63,18 @@ export const login = async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
-
         // if (user.password !== password )) {
         //     return res.status(400).json({ message: "Email or password is invalid" });
         // }
-        if (bcrypt.compareSync(password, user.password)) {
+        if (!bcrypt.compareSync(password, user.password)) {
             return res.status(400).json({ message: "Email or password is invalid" });
-        }
-
-
+        }        
         // create JWT token
         const token = jwt.sign(
-            { email: user.email, id: user._id },
+            { email: user.email, id: user._id, name: user.name },
             process.env.JWT_SECRET,
             { expiresIn: "10m" }
         );
-
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
         res.json({ message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
