@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config({ path: "./../config/config.env" });
-export const authenticateToken = (req, res, next) => {
-    const token = req.cookies?.token || req.header("Authorization")?.replace("Bearer ", ""); // support both cookie and header
+const authenticateToken = (req, res, next) => {
+    const token = req.cookies?.access_token || req.header("Authorization")?.replace("Bearer ", ""); // support both cookie and header
 
     console.log("Authenticating token:", token);
     if (!token) {
@@ -22,3 +22,4 @@ export const authenticateToken = (req, res, next) => {
         return res.status(401).json({ message: "Invalid token" });
     }
 };
+export default authenticateToken;
