@@ -27,7 +27,7 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json());
-// app.use(authenticateToken);
+app.use(authenticateToken);
 
 
 app.get("/", (req, res) => {
