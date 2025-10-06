@@ -5,10 +5,9 @@ dotenv.config({ path: "./../config/config.env" });
 
 // full paths since middleware is at "/"
 const PUBLIC_PATHS = [
+  "/",
   "/api/user/login",
-  "/api/user/forgot-password",
-  "/api/health",
-  "*" // optional: to skip catch-all "No API found" route
+  "/api/user/forgot-password"
 ];
 
 export const authenticateToken = (req, res, next) => {

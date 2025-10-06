@@ -1,19 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./database/db.js";
+import connectDB from "./config/connection.js";
 import userRoutes from "./routes/user.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
-// import bcrypt from "bcrypt";
-import unless from "express-unless";
+
 
 connectDB();
-
-
-// const hash = bcrypt.hashSync("Tejas@1234", 10);
-// bcrypt.compareSync("Tejas@1234", hash); 
-// console.log(bcrypt.compareSync("Tejas@1234", hash),hash);
 
 const app = express();
 
