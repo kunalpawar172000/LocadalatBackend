@@ -28,21 +28,8 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json());
+
 // app.use(authenticateToken);
-
-
-// authenticateToken.unless = unless;
-
-// apply globally but exclude login, forgot-password, and OPTIONS
-// app.use(
-//     authenticateToken.unless({
-//         path: [
-//             { url: "/api/user/login", methods: ["POST"] },
-//             { url: "/api/user/forgot-password", methods: ["POST"] },
-//             { url: "*", methods: ["OPTIONS"] } // skip all OPTIONS
-//         ]
-//     })
-// );
 
 app.get("/", (req, res) => {
     res.send("Hello from server");
