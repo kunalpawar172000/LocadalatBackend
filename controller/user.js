@@ -7,11 +7,13 @@ dotenv.config({ path: "./../config/config.env" });
 
 export const createUser = async (req, res) => {
     try {
-        const { password, email } = req.body;
+        const { name, email, password } = req.body;
+        console.log(password,"Password");
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
         // Basic validation
-        if (!password || !email) {
-            return res.status(400).json({ isSuccess: false, message: "Name and Email are required" });
+        if (!password || !email || !name) {
+            return res.status(400).json({ isSuccess: false, message: "All fields are required" });
         }
 
         // Check if user already exists
@@ -20,7 +22,7 @@ export const createUser = async (req, res) => {
             return res.status(409).json({ isSuccess: false, message: "User with this email already exists" });
         }
 
-        const newUser = new User({ password, email });
+        const newUser = new User({ name, email, password:hashedPassword });
         await newUser.save();
 
         res.status(201).json({

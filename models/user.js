@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    password: {
+    name: {
         type: String,
         required: true,
         trim: true
@@ -10,9 +10,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        lowercase: true,
         trim: true
-    }
+    },
+    password: {
+        type: String,
+        required: true,
+        trim: true
+    },
 });
 
 // Export with ES Modules
