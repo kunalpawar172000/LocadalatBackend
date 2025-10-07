@@ -1,13 +1,24 @@
 import mongoose from "mongoose";
 
 const weekoffSchema = new mongoose.Schema({
-  dayOfWeek: [{ type: Number, min: 0, max: 6 }], // 0=Sunday, 6=Saturday
-  weekOfMonth: [{ type: Number, min: 1, max: 5 }], // Empty = every week
-  recurring: { type: Boolean, default: true },
-  validFrom: { type: Date }, // used only if recurring=false
-  validTo: { type: Date },   // used only if recurring=false
+  daysOfWeek: [{ type: Number, min: 0, max: 6, required: true }], // 0=Sunday ... 6=Saturday
+
+  recurring: { type: Boolean, default: true }, //for every month
+
+  // Case 1: Global recurring → applies every week in every month
+  everyWeek: { type: Boolean, default: false },  
+
+  // Case 2: Specific weeks of month → e.g. 1st, 3rd
+  weeksOfMonth: [{ type: Number, min: 1, max: 5 }],  
+
+  // Case 3: Non-recurring → date-based
+  validFrom: { type: Date }, 
+  validTo: { type: Date },   
+
+  region: { type: String },
   active: { type: Boolean, default: true },
 }, { timestamps: true });
+
 
 const Weekoff = mongoose.model("Weekoff", weekoffSchema);
 export { Weekoff };

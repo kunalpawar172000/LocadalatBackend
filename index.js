@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/connection.js";
-import userRoutes from "./routes/user.js";
-import holidayRoutes from "./routes/holiday.js";
+import userRoutes from "./routes/userRoutes.js";
+import holidayRoutes from "./routes/holidayRoutes.js";
+import weekoffRoutes from "./routes/weekoffRoutes.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
@@ -36,6 +37,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/holiday", holidayRoutes);
+app.use("/api/weekoff", weekoffRoutes);
 
 // after all routes
 app.use(/.*/, (req, res) => {

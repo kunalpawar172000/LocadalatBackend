@@ -1,5 +1,5 @@
 import express from "express";
-import { createHoliday, getHolidays, updateHoliday, deleteHoliday } from "./../controller/holidayController.js";
+import { createHoliday, getHolidays, updateHoliday, deleteHoliday } from "../controller/holidayController.js";
 
 const router = express.Router();
 
