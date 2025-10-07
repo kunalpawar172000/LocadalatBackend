@@ -27,8 +27,8 @@ export const createUser = async (req, res) => {
 
         res.status(201).json({
             isSuccess: true,
-            message: "User created successfully",
-            data: newUser
+            message: "User created successfully"
+          
         });
     } catch (error) {
         console.error("Error creating user:", error);
@@ -51,24 +51,23 @@ export const getUsers = async (req, res) => {
     }
 };
 
-
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
- 
+
         if (!email) {
-            return res.status(400).json({isSuccess:false, message: "Email is required" });
+            return res.status(400).json({ isSuccess: false, message: "Email is required" });
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, active: true });
         if (!user) {
-            return res.status(400).json({isSuccess:false, message: "User not found" });
+            return res.status(400).json({ isSuccess: false, message: "User not found" });
         }
         // if (user.password !== password )) {
         //     return res.status(400).json({ message: "Email or password is invalid" });
         // }
         if (!bcrypt.compareSync(password, user.password)) {
-            return res.status(400).json({isSuccess:false, message: "Email or password is invalid" });
-        }        
+            return res.status(400).json({ isSuccess: false, message: "Email or password is invalid" });
+        }
         // create JWT token
         const token = jwt.sign(
             { email: user.email, id: user._id, name: user.name },
@@ -77,10 +76,42 @@ export const login = async (req, res) => {
         );
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
-        res.json({isSuccess:true, message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
+        res.json({ isSuccess: true, message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
 
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({isSuccess:false, name: error.name, message: error.message });
+        res.status(500).json({ isSuccess: false, name: error.name, message: error.message });
     }
 };
+
+export const updatePassword = async (req, res) => {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+        return { success: false, message: "Email and new password are required" };
+    }
+
+    try {
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return { success: false, message: "User not found" };
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hashSync(password, 10);
+
+        // Update and save password
+        user.password = hashedPassword;
+        await user.save();
+
+        return { success: true, message: "Password updated successfully" };
+    } catch (err) {
+        console.error("Error updating password:", err);
+        return { success: false, message: "Server error, please try again later" };
+    }
+}
+
+export const logout = () => {
+    console.log("Logout called");
+
+}

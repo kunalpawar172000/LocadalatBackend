@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/connection.js";
 import userRoutes from "./routes/user.js";
+import holidayRoutes from "./routes/holiday.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
@@ -16,8 +17,9 @@ dotenv.config({ path: "./config/config.env" });
 const PORT = process.env.PORT;
 app.use(cors({
     origin: ["http://localhost:3000",
-        "https://locadalat-frontend-dev.vercel.app",
-        "https://locadalat-frontend.vercel.app",
+        // "https://locadalat-frontend-dev.vercel.app",
+        // "https://locadalat-frontend.vercel.app",
+        "https://locadalat-frontend-orpin.vercel.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -33,6 +35,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", userRoutes);
+app.use("/api/holiday", holidayRoutes);
 
 // after all routes
 app.use(/.*/, (req, res) => {
