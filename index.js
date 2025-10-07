@@ -17,11 +17,8 @@ const PORT = process.env.PORT;
 app.use(cors({
     origin: ["http://localhost:3000",
         "https://locadalat-frontend-dev.vercel.app",
-        "http://locadalat-frontend-dev.vercel.app",
-        "https://locadalat-frontend-dev.vercel.app/",
-        "http://locadalat-frontend-dev.vercel.app/",
         "https://locadalat-frontend.vercel.app",
-        "https://locadalat-frontend-jz1dm68lj-tejas-pawars-projects-96af44dc.vercel.app"],
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]

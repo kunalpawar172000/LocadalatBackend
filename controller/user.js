@@ -57,17 +57,17 @@ export const login = async (req, res) => {
         const { email, password } = req.body;
  
         if (!email) {
-            return res.status(400).json({ message: "Email is required" });
+            return res.status(400).json({isSuccess:false, message: "Email is required" });
         }
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: "User not found" });
+            return res.status(400).json({isSuccess:false, message: "User not found" });
         }
         // if (user.password !== password )) {
         //     return res.status(400).json({ message: "Email or password is invalid" });
         // }
         if (!bcrypt.compareSync(password, user.password)) {
-            return res.status(400).json({ message: "Email or password is invalid" });
+            return res.status(400).json({isSuccess:false, message: "Email or password is invalid" });
         }        
         // create JWT token
         const token = jwt.sign(
@@ -77,10 +77,10 @@ export const login = async (req, res) => {
         );
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
-        res.json({ message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
+        res.json({isSuccess:true, message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
 
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({ name: error.name, message: error.message });
+        res.status(500).json({isSuccess:false, name: error.name, message: error.message });
     }
 };
