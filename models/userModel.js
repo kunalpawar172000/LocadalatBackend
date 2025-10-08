@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
     isLoggedIn: { type: Boolean, default: false },
-    active: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

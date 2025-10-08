@@ -1,25 +1,15 @@
 
-import { Weekoff } from "../models/weekoff.js";
-
+import { Weekoff } from "../models/weekoffModel.js";
+import { validateBodyParams } from "../utility/helper.js";
 
 export const createWeekOff = async (req, res) => {
     try {
         const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 2. Validate dayOfWeek flag
-        if (!("dayOfWeek" in req.body)) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "dayOfWeek parameter is missing"
-            });
-        }
-        // 2. Validate recurring flag
-        if (!("recurring" in req.body)) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "recurring parameter is missing"
-            });
-        }
+        // If any parameter is missing, the response is sent and function returns
+        const requiredParams = ["dayOfWeek", "recurring"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+        if (errorResponse) return; // stop execution if missing params
 
         let weekOffDoc;
 
@@ -73,6 +63,12 @@ export const createWeekOff = async (req, res) => {
         // 5. Save to DB
         const result = await weekOffDoc.save();
 
+        if (!result) {
+            return res.status(500).json({
+                isSuccess: false,
+                message: "Failed to create week off"
+            });
+        }
         return res.status(201).json({
             isSuccess: true,
             message: "Week off created successfully"
@@ -91,20 +87,10 @@ export const updateWeekoff = async (req, res) => {
         const { id } = req.params;
         const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 1. Validate dayOfWeek flag
-        if (!("dayOfWeek" in req.body)) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "dayOfWeek parameter is missing"
-            });
-        }
-        // 2. Validate recurring flag
-        if (!("recurring" in req.body)) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "recurring parameter is missing"
-            });
-        }
+        // If any parameter is missing, the response is sent and function returns
+        const requiredParams = ["dayOfWeek", "recurring"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+        if (errorResponse) return; // stop execution if missing params
 
         let updateData = { dayOfWeek, recurring };
 
@@ -130,6 +116,7 @@ export const updateWeekoff = async (req, res) => {
             updateData.validTo = undefined;
         } else {
             // 4. Non-recurring → validFrom & validTo required
+
             if (!validFrom || !validTo) {
                 return res.status(400).json({
                     isSuccess: false,
@@ -150,13 +137,13 @@ export const updateWeekoff = async (req, res) => {
 
         // 5. Update in DB
         const updatedDoc = await Weekoff.findOneAndUpdate(
-            { _id: id, active: true },
+            { _id: id, isActive: true },
             updateData,
             { new: true }
         );
 
         if (!updatedDoc) {
-            return res.status(404).json({ isSuccess: false, message: "Weekoff not found" });
+            return res.status(500).json({ isSuccess: false, message: "Failed to update weekoff" });
         }
 
         return res.status(200).json({
@@ -176,8 +163,8 @@ export const deleteWeekOff = async (req, res) => {
     try {
         const { id } = req.params;
         const deletedDoc = await Weekoff.findOneAndUpdate(
-            { _id: id, active: true },
-            { active: false },
+            { _id: id, isActive: true },
+            { isActive: false },
             { new: true }
         );
         if (!deletedDoc) {

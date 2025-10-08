@@ -9,7 +9,10 @@ import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
 
-connectDB();
+connectDB().catch((message, error) => {
+    console.log(message);
+
+});
 
 const app = express();
 
@@ -38,6 +41,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/holiday", holidayRoutes);
 app.use("/api/weekoff", weekoffRoutes);
+app.use("/api/slot", weekoffRoutes);
+
 
 // after all routes
 app.use(/.*/, (req, res) => {

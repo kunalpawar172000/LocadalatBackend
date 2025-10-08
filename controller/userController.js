@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
@@ -8,7 +8,6 @@ dotenv.config({ path: "./../config/config.env" });
 export const createUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        console.log(password, "Password");
         const hashedPassword = bcrypt.hashSync(password, 10);
 
         // Basic validation
@@ -23,12 +22,15 @@ export const createUser = async (req, res) => {
         }
 
         const newUser = new User({ name, email, password: hashedPassword });
-        await newUser.save();
+        const result = await newUser.save();
 
+        if (!result) {
+            return res.status(500).json({ isSuccess: false, message: "Failed to create user" });
+        }
         res.status(201).json({
             isSuccess: true,
             message: "User created successfully"
-          
+
         });
     } catch (error) {
         console.error("Error creating user:", error);
@@ -38,8 +40,11 @@ export const createUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.find({}, "_id email"); // only id and email
+        const users = await User.find({isActive:true}, {_id:1,email:1}); // only id and email
 
+        if(!users) {
+            return res.status(404).json({ isSuccess: false, message: "No users found" });
+        }
         res.status(200).json({
             success: true,
             count: users.length,
@@ -56,17 +61,17 @@ export const login = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email) {
-            return res.status(400).json({ isSuccess: false, message: "Email is required" });
+            return res.status(200).json({ isSuccess: false, message: "Email is required" });
         }
-        const user = await User.findOne({ email, active: true });
+        const user = await User.findOne({ email, isActive: true });
         if (!user) {
-            return res.status(400).json({ isSuccess: false, message: "User not found" });
+            return res.status(404).json({ isSuccess: false, message: "User not found" });
         }
         // if (user.password !== password )) {
         //     return res.status(400).json({ message: "Email or password is invalid" });
         // }
         if (!bcrypt.compareSync(password, user.password)) {
-            return res.status(400).json({ isSuccess: false, message: "Email or password is invalid" });
+            return res.status(200).json({ isSuccess: false, message: "Email or password is invalid" });
         }
         // create JWT token
         const token = jwt.sign(
@@ -74,9 +79,12 @@ export const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "10m" }
         );
+
+        await User.findByIdAndUpdate(user._id, { isLoggedIn: true });
+
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
-        res.json({ isSuccess: true, message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
+        res.status(200).json({ isSuccess: true, message: "Login successful", user: { id: user._id, email: user.email }, access_token: token });
 
     } catch (error) {
         console.error("Login error:", error);
@@ -85,29 +93,33 @@ export const login = async (req, res) => {
 };
 
 export const updatePassword = async (req, res) => {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword) {
-        return { success: false, message: "Email and new password are required" };
-    }
+
 
     try {
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword) {
+            return res.status(400).json({ success: false, message: "Email and new password are required" });
+        }
         // Find user by email
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, isActive: true });
         if (!user) {
-            return { success: false, message: "User not found" };
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
         // Hash the new password
-        const hashedPassword = await bcrypt.hashSync(password, 10);
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
         // Update and save password
         user.password = hashedPassword;
-        await user.save();
+        const result = await user.save();
 
-        return { success: true, message: "Password updated successfully" };
+        if (!result) {
+            return res.status(500).json({ success: false, message: "Failed to update password" });
+        }
+        return res.status(200).json({ success: true, message: "Password updated successfully" });
     } catch (err) {
         console.error("Error updating password:", err);
-        return { success: false, message: "Server error, please try again later" };
+        return res.status(500).json({ success: false, message: "Server error, please try again later" });
     }
 }
 

@@ -4,7 +4,7 @@ const holidaySchema = new mongoose.Schema({
     name: { type: String, required: true },
     date: { type: Date },
     recurring: { type: Boolean, default: false },
-    active: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 

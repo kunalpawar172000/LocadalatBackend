@@ -1,13 +1,18 @@
-import { Holiday } from "./../models/holiday.js";
+import { Holiday } from "../models/holidayModel.js";
+
+import { checkIsDayWeekOff, isHolidayExistInDb, checkIsDayHoliday, validateBodyParams } from "./../utility/helper.js"
 
 export async function createHoliday(req, res) {
     try {
         const { name, date, recurring } = req.body;
 
+        // If any parameter is missing, the response is sent and function returns
+        const requiredParams = ["name", "recurring", "date"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+        if (errorResponse) return; // stop execution if missing params
+
         if (!name) return res.status(400).json({ isSuccess: false, message: "Holiday name is required" });
         if (!date) return res.status(400).json({ isSuccess: false, message: "Date is required for holiday" });
-
-        //validation here to not add holidy if that day has bookings
 
         if (date) {
             const holidayDate = new Date(date);
@@ -15,12 +20,23 @@ export async function createHoliday(req, res) {
             today.setHours(0, 0, 0, 0);
             if (holidayDate <= today) return res.status(400).json({ isSuccess: false, message: "Holiday date cannot be in the past or today" });
         }
+        //validation here to not add holidy if that day has bookings or check if that date has weekoffs
+
+        const isDayWeekOff = await checkIsDayWeekOff(date);
+
+        if (isDayWeekOff) {
+            return res.status(409).json({ isSuccess: false, message: "Cannot add holiday on a weekly off day" });
+        }
+
         // Check for duplicate holiday on the same date
-        const existingHoliday = await Holiday.findOne({ date: new Date(date), active: true });
-        if (existingHoliday) return res.status(400).json({ isSuccess: false, message: "A holiday already exists on this date" });
+        const existingHoliday = await checkIsDayHoliday(date);
+        if (existingHoliday) return res.status(409).json({ isSuccess: false, message: "A holiday already exists on this date" });
 
         const holiday = new Holiday({ name, date, recurring });
-        await holiday.save();
+        const result = await holiday.save();
+        if (!result) {
+            return res.status(500).json({ isSuccess: false, message: "Failed to create holiday" });
+        }
         return res.status(201).json({ isSuccess: true, message: "Holiday added successfully" });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: err.message });
@@ -29,7 +45,10 @@ export async function createHoliday(req, res) {
 
 export async function getHolidays(req, res) {
     try {
-        const holidays = await Holiday.find({ active: true });
+        const holidays = await Holiday.find({ isActive: true });
+        if(!holidays) {
+            return res.status(404).json({ isSuccess: false, message: "No holidays found" });
+        }
         return res.status(200).json({ isSuccess: true, holidays });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: err.message });
@@ -39,12 +58,13 @@ export async function getHolidays(req, res) {
 export async function updateHoliday(req, res) {
     try {
         const { id } = req.params;
-        const { name, date, recurring, region, active } = req.body;
-
-        const isHolidayExist = await Holiday.findById(id);
+        const { name, date, recurring } = req.body;
+        // If any parameter is missing, the response is sent and function returns
+        const requiredParams = ["name", "recurring", "date"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+        if (errorResponse) return; // stop execution if missing params
+        const isHolidayExist = isHolidayExistInDb(id);
         if (!isHolidayExist) return res.status(404).json({ isSuccess: false, message: "Holiday not found" });
-
-
 
         if (date) {
             const holidayDate = new Date(date);
@@ -52,12 +72,16 @@ export async function updateHoliday(req, res) {
             today.setHours(0, 0, 0, 0);
             if (holidayDate <= today) return res.status(400).json({ isSuccess: false, message: "Holiday date cannot be in the past or today" });
         }
-        if (isHolidayExist.date.toISOString() !== new Date(date).toISOString()) {
-            const existingHoliday = await Holiday.findOne({ date: new Date(date), active: true });
-            if (existingHoliday) return res.status(400).json({ isSuccess: false, message: "A holiday already exists on this date" });
+        if (new Date(isHolidayExist.date) !== new Date(date)) {
+            const isDayWeekOff = await checkIsDayWeekOff(date);
+            if (isDayWeekOff) {
+                return res.status(409).json({ isSuccess: false, message: "Cannot add holiday on a weekly off day" });
+            }
+            const existingHoliday = await checkIsDayHoliday(date);
+            if (existingHoliday) return res.status(409).json({ isSuccess: false, message: "A holiday already exists on this date" });
         }
-        const holiday = await Holiday.findByIdAndUpdate(id, { name, date, recurring, region, active }, { new: true });
-        if (!holiday) return res.status(404).json({ isSuccess: false, message: "Holiday not found" });
+        const holiday = await Holiday.findByIdAndUpdate(id, { name, date, recurring, region, isActive }, { new: true });
+        if (!holiday) return res.status(500).json({ isSuccess: false, message: "Failed to update holiday" });
         return res.status(200).json({ isSuccess: true, message: "Holiday updated successfully" });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: err.message });
@@ -67,12 +91,20 @@ export async function updateHoliday(req, res) {
 export async function deleteHoliday(req, res) {
     try {
         const { id } = req.params;
+
+        //check if holiday is in past date then cannot delete
+        const isHolidayExist = await isHolidayExistInDb(id);
+        if (!isHolidayExist) return res.status(404).json({ isSuccess: false, message: "Holiday not found" });
+        if (new Date(isHolidayExist.date) < new Date()) {
+            return res.status(400).json({ isSuccess: false, message: "Cannot delete a holiday in the past" });
+        }
+
         const holiday = await Holiday.findOneAndUpdate(
-            { _id: id, active: true },   // only match active holidays
-            { active: false },
+            { _id: id, isActive: true },   // only match isActive holidays
+            { isActive: false },
             { new: true }
         );
-        if (!holiday) return res.status(404).json({ isSuccess: false, message: "Holiday not found" });
+        if (!holiday) return res.status(500).json({ isSuccess: false, message: "Failed to delete holiday" });
         return res.status(200).json({ isSuccess: true, message: "Holiday deleted successfully." });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: err.message });
