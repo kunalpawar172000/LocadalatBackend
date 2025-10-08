@@ -2,7 +2,7 @@ import { Holiday } from "../models/holidayModel.js";
 
 import { checkIsDayWeekOff, isHolidayExistInDb, checkIsDayHoliday, validateBodyParams } from "./../utility/helper.js"
 
-export async function createHoliday(req, res) {
+export const createHoliday = async (req, res) => {
     try {
         const { name, date, recurring } = req.body;
 
@@ -43,11 +43,11 @@ export async function createHoliday(req, res) {
     }
 }
 
-export async function getHolidays(req, res) {
+export const getHolidays = async (req, res) => {
     try {
         const holidays = await Holiday.find({ isActive: true });
-        if(!holidays) {
-            return res.status(404).json({ isSuccess: false, message: "No holidays found" });
+        if (!holidays) {
+            return res.status(404).json({ isSuccess: false, message: "Failed to fetch holidays" });
         }
         return res.status(200).json({ isSuccess: true, holidays });
     } catch (err) {
@@ -55,7 +55,7 @@ export async function getHolidays(req, res) {
     }
 }
 
-export async function updateHoliday(req, res) {
+export const updateHoliday = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, date, recurring } = req.body;
@@ -88,7 +88,7 @@ export async function updateHoliday(req, res) {
     }
 }
 
-export async function deleteHoliday(req, res) {
+export const deleteHoliday = async (req, res) => {
     try {
         const { id } = req.params;
 
