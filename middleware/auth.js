@@ -1,6 +1,7 @@
 // auth.js
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { MESSAGES } from "../config/constants.js";
 dotenv.config({ path: "./../config/config.env" });
 
 // full paths since middleware is at "/"
@@ -26,7 +27,7 @@ export const authenticateToken = (req, res, next) => {
     req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
+    return res.status(401).json({ isSuccess: false, message: MESSAGES.UNAUTHORIZED });
   }
 
   try {
@@ -34,6 +35,6 @@ export const authenticateToken = (req, res, next) => {
     req.user = payload;
     return next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    return res.status(401).json({ isSuccess: false, message: MESSAGES.INVALID_TOKEN });
   }
 };

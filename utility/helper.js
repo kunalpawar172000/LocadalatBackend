@@ -54,13 +54,19 @@ export const checkIsDayWeekOff = async (date) => {
     const weekOfMonth = getWeekOfMonth(dateObj); // 1-5
 
     // Query only required fields
-    const weekoff = await Weekoff.find(
+    const weekoffs = await Weekoff.find(
         { weekday: dayOfWeek, isActive: true },
         { weeks: 1 }   // fetch only "weeks" field
     );
 
-    // Return true only if weekoff exists and matches current week
-    return weekoff?.weeks?.includes(weekOfMonth) || false;
+    if (!weekoffs || weekoffs.length === 0) return false;
+
+    // If any weekoff document includes the current week number, it's a week off
+    for (const w of weekoffs) {
+        if (w.weeks && Array.isArray(w.weeks) && w.weeks.includes(weekOfMonth)) return true;
+    }
+
+    return false;
 };
 
 export const checkIsDayHoliday = async (date) => {

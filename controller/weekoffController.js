@@ -1,6 +1,7 @@
 
 import { Weekoff } from "../models/weekoffModel.js";
 import { validateBodyParams } from "../utility/helper.js";
+import { ERRORS, MESSAGES } from "../config/constants.js";
 
 export const getWeekoffs = async (req, res) => {
     try {
@@ -8,7 +9,7 @@ export const getWeekoffs = async (req, res) => {
         if(!weekoffs){
             return res.status(404).json({
                 isSuccess: false,
-                message: "Failed to fetch weekoffs"
+                message: MESSAGES.FAILED_FETCH_WEEKOFFS
             });
         }
         return res.status(200).json({
@@ -18,7 +19,7 @@ export const getWeekoffs = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             isSuccess: false,
-            message: err.message
+            message: ERRORS.INTERNAL
         });
     }
 };
@@ -48,7 +49,7 @@ export const createWeekOff = async (req, res) => {
                 if (!weeksOfMonth || !Array.isArray(weeksOfMonth) || weeksOfMonth.length === 0) {
                     return res.status(400).json({
                         isSuccess: false,
-                        message: "weeksOfMonth is required for recurring week off when everyWeek is false"
+                        message: MESSAGES.WEEKS_OF_MONTH_REQUIRED
                     });
                 }
                 weekOffDoc = new Weekoff({
@@ -63,13 +64,13 @@ export const createWeekOff = async (req, res) => {
             if (!validFrom || !validTo) {
                 return res.status(400).json({
                     isSuccess: false,
-                    message: "validFrom and validTo are required for non-recurring week off"
+                    message: MESSAGES.VALID_FROM_TO_REQUIRED
                 });
             }
             if (new Date(validFrom) > new Date(validTo)) {
                 return res.status(400).json({
                     isSuccess: false,
-                    message: "validFrom cannot be after validTo"
+                    message: MESSAGES.VALID_FROM_AFTER_VALID_TO
                 });
             }
 
@@ -87,18 +88,18 @@ export const createWeekOff = async (req, res) => {
         if (!result) {
             return res.status(500).json({
                 isSuccess: false,
-                message: "Failed to create week off"
+                message: MESSAGES.FAILED_CREATE_WEEKOFF
             });
         }
         return res.status(201).json({
             isSuccess: true,
-            message: "Week off created successfully"
+            message: MESSAGES.WEEKOFF_CREATED
         });
 
     } catch (err) {
         return res.status(500).json({
             isSuccess: false,
-            message: err.message
+            message: ERRORS.INTERNAL
         });
     }
 };
@@ -126,7 +127,7 @@ export const updateWeekoff = async (req, res) => {
                 if (!weeksOfMonth || !Array.isArray(weeksOfMonth) || weeksOfMonth.length === 0) {
                     return res.status(400).json({
                         isSuccess: false,
-                        message: "weeksOfMonth is required for recurring week off when everyWeek is false"
+                        message: MESSAGES.WEEKS_OF_MONTH_REQUIRED
                     });
                 }
                 updateData.weeksOfMonth = weeksOfMonth;
@@ -141,13 +142,13 @@ export const updateWeekoff = async (req, res) => {
             if (!validFrom || !validTo) {
                 return res.status(400).json({
                     isSuccess: false,
-                    message: "validFrom and validTo are required for non-recurring week off"
+                    message: MESSAGES.VALID_FROM_TO_REQUIRED
                 });
             }
             if (new Date(validFrom) > new Date(validTo)) {
                 return res.status(400).json({
                     isSuccess: false,
-                    message: "validFrom cannot be after validTo"
+                    message: MESSAGES.VALID_FROM_AFTER_VALID_TO
                 });
             }
             updateData.validFrom = validFrom;
@@ -164,18 +165,18 @@ export const updateWeekoff = async (req, res) => {
         );
 
         if (!updatedDoc) {
-            return res.status(500).json({ isSuccess: false, message: "Failed to update weekoff" });
+            return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_UPDATE_WEEKOFF });
         }
 
         return res.status(200).json({
             isSuccess: true,
-            message: "Weekoff updated successfully"
+            message: MESSAGES.WEEKOFF_UPDATED
         });
 
     } catch (err) {
         return res.status(500).json({
             isSuccess: false,
-            message: err.message
+            message: ERRORS.INTERNAL
         });
     }
 };
@@ -189,16 +190,16 @@ export const deleteWeekOff = async (req, res) => {
             { new: true }
         );
         if (!deletedDoc) {
-            return res.status(404).json({ isSuccess: false, message: "Weekoff not found" });
+            return res.status(404).json({ isSuccess: false, message: MESSAGES.WEEKOFF_NOT_FOUND });
         }
         return res.status(200).json({
             isSuccess: true,
-            message: "Weekoff deleted successfully"
+            message: MESSAGES.WEEKOFF_DELETED
         });
     } catch (err) {
         return res.status(500).json({
             isSuccess: false,
-            message: err.message
+            message: ERRORS.INTERNAL
         });
     }
 }

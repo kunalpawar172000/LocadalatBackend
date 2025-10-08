@@ -2,7 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/connection.js";
-import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/user.js";
+import bookingRoute from "./routes/bookingRoute.js";
+import adminRoutes from "./routes/admin.js";
 import holidayRoutes from "./routes/holidayRoutes.js";
 import weekoffRoutes from "./routes/weekoffRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
@@ -40,16 +42,20 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", userRoutes);
+app.use("/api/booking", bookingRoute);
+app.use("/api/admin", adminRoutes);
 app.use("/api/holiday", holidayRoutes);
 app.use("/api/weekoff", weekoffRoutes);
 app.use("/api/slot", slotRoutes);
 
 
 // after all routes
+import { MESSAGES } from "./config/constants.js";
+
 app.use(/.*/, (req, res) => {
     res.status(404).json({
-        success: false,
-        message: "No API found for this route",
+        isSuccess: false,
+        message: MESSAGES.NOT_FOUND_ROUTE,
         path: req.originalUrl,
         method: req.method,
     });
