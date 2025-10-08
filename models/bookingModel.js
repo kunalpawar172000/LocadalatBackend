@@ -9,6 +9,9 @@ const bookingSchema = new mongoose.Schema({
   // guest details inside `metadata` (guestName/guestEmail). phone remains top-level for quick access.
   phone: { type: String },
 
+  // scheduled appointment date
+  bookingDate: { type: Date },
+
   vehicleNo: { type: String },
   chalanNo: { type: String },
 
@@ -19,8 +22,10 @@ const bookingSchema = new mongoose.Schema({
   status: { type: String, enum: ["pending", "confirmed", "cancelled"], default: "pending" },
   amount: { type: Number, required: true, default: 0 },
   metadata: { type: Object, default: {} },
-
   createdAt: { type: Date, default: Date.now }
 });
+
+// index bookingDate for faster range queries
+bookingSchema.index({ bookingDate: 1 });
 
 export default mongoose.model("Booking", bookingSchema);
