@@ -17,7 +17,8 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-});
+    isLoggedIn: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true }
+}, { timestamps: true });
 
-// Export with ES Modules
 export default mongoose.model("User", userSchema);
