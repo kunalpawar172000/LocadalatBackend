@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const weekoffSchema = new mongoose.Schema({
-  dayOfWeek: { type: Number, min: 0, max: 6, required: true, unique: true }, // 0=Sunday ... 6=Saturday
+  dayOfWeek: { type: Number, min: 0, max: 6, required: true,unique: true }, // 0=Sunday ... 6=Saturday
 
   recurring: { type: Boolean, default: true }, //for every month
 

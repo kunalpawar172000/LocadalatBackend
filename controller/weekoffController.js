@@ -6,14 +6,13 @@ export const createWeekOff = async (req, res) => {
     try {
         const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 1. Validate dayOfWeek
-        // if (!dayOfWeek) {
-        //     return res.status(400).json({
-        //         isSuccess: false,
-        //         message: "dayOfWeek is required and must be a non-empty array"
-        //     });
-        // }
-
+        // 2. Validate dayOfWeek flag
+        if (!("dayOfWeek" in req.body)) {
+            return res.status(400).json({
+                isSuccess: false,
+                message: "dayOfWeek parameter is missing"
+            });
+        }
         // 2. Validate recurring flag
         if (!("recurring" in req.body)) {
             return res.status(400).json({
@@ -92,14 +91,13 @@ export const updateWeekoff = async (req, res) => {
         const { id } = req.params;
         const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 1. Validate dayOfWeek
-        // if (!dayOfWeek) {
-        //     return res.status(400).json({
-        //         isSuccess: false,
-        //         message: "dayOfWeek is required and must be a non-empty array"
-        //     });
-        // }
-
+        // 1. Validate dayOfWeek flag
+        if (!("dayOfWeek" in req.body)) {
+            return res.status(400).json({
+                isSuccess: false,
+                message: "dayOfWeek parameter is missing"
+            });
+        }
         // 2. Validate recurring flag
         if (!("recurring" in req.body)) {
             return res.status(400).json({
