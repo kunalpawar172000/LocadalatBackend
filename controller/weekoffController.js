@@ -4,15 +4,15 @@ import { Weekoff } from "../models/weekoff.js";
 
 export const createWeekOff = async (req, res) => {
     try {
-        const { daysOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
+        const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 1. Validate daysOfWeek
-        if (!daysOfWeek || !Array.isArray(daysOfWeek) || daysOfWeek.length === 0) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "daysOfWeek is required and must be a non-empty array"
-            });
-        }
+        // 1. Validate dayOfWeek
+        // if (!dayOfWeek) {
+        //     return res.status(400).json({
+        //         isSuccess: false,
+        //         message: "dayOfWeek is required and must be a non-empty array"
+        //     });
+        // }
 
         // 2. Validate recurring flag
         if (!("recurring" in req.body)) {
@@ -28,7 +28,7 @@ export const createWeekOff = async (req, res) => {
             // 3a. Every week case
             if (everyWeek) {
                 weekOffDoc = new Weekoff({
-                    daysOfWeek,
+                    dayOfWeek,
                     recurring,
                     everyWeek
                 });
@@ -42,7 +42,7 @@ export const createWeekOff = async (req, res) => {
                     });
                 }
                 weekOffDoc = new Weekoff({
-                    daysOfWeek,
+                    dayOfWeek,
                     weeksOfMonth,
                     recurring: true,
                     everyWeek: false
@@ -64,7 +64,7 @@ export const createWeekOff = async (req, res) => {
             }
 
             weekOffDoc = new Weekoff({
-                daysOfWeek,
+                dayOfWeek,
                 recurring: false,
                 validFrom,
                 validTo
@@ -76,8 +76,7 @@ export const createWeekOff = async (req, res) => {
 
         return res.status(201).json({
             isSuccess: true,
-            message: "Week off created successfully",
-            data: result
+            message: "Week off created successfully"
         });
 
     } catch (err) {
@@ -91,15 +90,15 @@ export const createWeekOff = async (req, res) => {
 export const updateWeekoff = async (req, res) => {
     try {
         const { id } = req.params;
-        const { daysOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
+        const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
 
-        // 1. Validate daysOfWeek
-        if (!daysOfWeek || !Array.isArray(daysOfWeek) || daysOfWeek.length === 0) {
-            return res.status(400).json({
-                isSuccess: false,
-                message: "daysOfWeek is required and must be a non-empty array"
-            });
-        }
+        // 1. Validate dayOfWeek
+        // if (!dayOfWeek) {
+        //     return res.status(400).json({
+        //         isSuccess: false,
+        //         message: "dayOfWeek is required and must be a non-empty array"
+        //     });
+        // }
 
         // 2. Validate recurring flag
         if (!("recurring" in req.body)) {
@@ -109,7 +108,7 @@ export const updateWeekoff = async (req, res) => {
             });
         }
 
-        let updateData = { daysOfWeek, recurring };
+        let updateData = { dayOfWeek, recurring };
 
         if (recurring) {
             // 3a. Every week case
@@ -164,8 +163,7 @@ export const updateWeekoff = async (req, res) => {
 
         return res.status(200).json({
             isSuccess: true,
-            message: "Weekoff updated successfully",
-            data: updatedDoc
+            message: "Weekoff updated successfully"
         });
 
     } catch (err) {
