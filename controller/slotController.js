@@ -1,10 +1,10 @@
 import Slot from "../models/slotModel.js";
 
-export const getSlots =async (req, res) => {
+export const getSlots = async (req, res) => {
     try {
         const slots = await Slot.find({ isActive: true });
         if (!slots) {
-            return res.status(404).json({ isSuccess: false, message: "No slots found" });
+            return res.status(404).json({ isSuccess: false, message: "Failed to fetch slots" });
         }
         res.status(200).json({
             success: true,

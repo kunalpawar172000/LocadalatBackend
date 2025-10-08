@@ -5,7 +5,8 @@ import connectDB from "./config/connection.js";
 import userRoutes from "./routes/userRoutes.js";
 import holidayRoutes from "./routes/holidayRoutes.js";
 import weekoffRoutes from "./routes/weekoffRoutes.js";
-import { authenticateToken } from "./middleware/auth.js";
+import slotRoutes from "./routes/slotRoutes.js";
+// import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
 
@@ -41,7 +42,7 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/holiday", holidayRoutes);
 app.use("/api/weekoff", weekoffRoutes);
-app.use("/api/slot", weekoffRoutes);
+app.use("/api/slot", slotRoutes);
 
 
 // after all routes

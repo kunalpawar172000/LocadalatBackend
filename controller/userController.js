@@ -40,14 +40,13 @@ export const createUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.find({isActive:true}, {_id:1,email:1}); // only id and email
+        const users = await User.find({ isActive: true }, { _id: 1, email: 1 }); // only id and email
 
-        if(!users) {
-            return res.status(404).json({ isSuccess: false, message: "No users found" });
+        if (!users) {
+            return res.status(404).json({ isSuccess: false, message: "Failed to fetch users" });
         }
         res.status(200).json({
-            success: true,
-            count: users.length,
+            isSuccess: true,
             data: users
         });
     } catch (error) {

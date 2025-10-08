@@ -2,6 +2,27 @@
 import { Weekoff } from "../models/weekoffModel.js";
 import { validateBodyParams } from "../utility/helper.js";
 
+export const getWeekoffs = async (req, res) => {
+    try {
+        const weekoffs = await Weekoff.find({ isActive: true });
+        if(!weekoffs){
+            return res.status(404).json({
+                isSuccess: false,
+                message: "Failed to fetch weekoffs"
+            });
+        }
+        return res.status(200).json({
+            isSuccess: true,
+            data: weekoffs
+        });
+    } catch (err) {
+        return res.status(500).json({
+            isSuccess: false,
+            message: err.message
+        });
+    }
+};
+
 export const createWeekOff = async (req, res) => {
     try {
         const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
