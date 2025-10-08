@@ -5,9 +5,10 @@ import { getUsers, createUser, login,updatePassword } from '../controller/userCo
 const router = express.Router();
 
 // Route to get user profile
-router.get('/profile', getUsers);
+router.get('/getUsers', getUsers);
 router.post('/createUser', createUser);
 router.post('/login', login);
 router.post('/updatePassword', updatePassword);
 
 export default router;
+
