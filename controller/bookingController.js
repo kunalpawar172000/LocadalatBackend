@@ -6,64 +6,40 @@ import { ERRORS } from "../config/constants.js";
 
 dotenv.config({ path: "./config/config.env" });
 
-// Create a new booking/appointment (slot removed, slotId kept)
+// Create a new booking/appointment
 export const createBooking = async (req, res) => {
   try {
     const body = req.body || {};
 
+    // relevant fields (metadata removed)
     const {
       status,
       customerName,
       email,
       phone,
       date,
+      bookingDate: bookingDateRaw,
       courtCaseNo,
       vehicleNo,
       chalanNo,
       slotId,
-      name,
-      bookingDate
+      name
     } = body;
 
-    const bookingData = {
-      phone,
-      vehicleNo,
-      chalanNo
+    // Helper: safe date normalizer (accepts string, timestamp, or { $date: ... })
+    const parseIncomingDate = (val) => {
+      if (!val) return null;
+      if (typeof val === 'object' && val.$date) val = val.$date;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
     };
 
-    if (courtCaseNo) bookingData.courtCaseNo = courtCaseNo;
-    if (slotId) bookingData.slotId = slotId;
-    if (name) bookingData.name = name;
-    else if (customerName) bookingData.name = customerName;
-    if (email) bookingData.email = email;
-    if (status) bookingData.status = status;
-
-    // Parse and normalize booking date
-    if (bookingDate || date) {
-      const parsed = new Date(bookingDate || date);
-      if (isNaN(parsed)) {
-        return res.status(400).json({
-          isSuccess: false,
-          message: "Invalid bookingDate. Provide a valid ISO date."
-        });
-      }
-      parsed.setUTCHours(0, 0, 0, 0);
-      bookingData.bookingDate = parsed;
-    }
-
-    // Check holiday / weekoff
-    const bookingDateForCheck = bookingData.bookingDate ? new Date(bookingData.bookingDate) : new Date();
-    const isHoliday = await checkIsDayHoliday(bookingDateForCheck);
-    const isWeekOff = await checkIsDayWeekOff(bookingDateForCheck);
-
-    if (isHoliday || isWeekOff) {
-      return res.status(400).json({ isSuccess: false, message: ERRORS.HOLIDAY_WEEKOFF });
-    }
-
-    // Generate token number
+    // Helper: generate token number (defensive)
     const generateTokenNumber = async (bookingDate) => {
       let currentDate = bookingDate ? new Date(bookingDate) : new Date();
-      const dateStr = currentDate.toISOString().slice(0, 10).replace(/-/g, '');
+      if (isNaN(currentDate.getTime())) currentDate = new Date();
+
+      const dateStr = currentDate.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
       const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
       const dayLetter = daysOfWeek[currentDate.getDay()];
 
@@ -80,8 +56,63 @@ export const createBooking = async (req, res) => {
       return `${dateStr}-${dayLetter}-${serialNumber}-LOK`;
     };
 
+    // Build booking payload
+    const bookingData = {
+      phone,
+      vehicleNo,
+      chalanNo
+    };
+
+    // slotId (top-level) if provided
+    if (slotId) bookingData.slotId = slotId;
+
+    // courtCaseNo
+    if (courtCaseNo) bookingData.courtCaseNo = courtCaseNo;
+
+    // name/email: prefer top-level name, fallback to customerName
+    if (name) bookingData.name = name;
+    else if (customerName) bookingData.name = customerName;
+
+    if (email) bookingData.email = email;
+    if (status) bookingData.status = status;
+
+    // parse bookingDate if provided (accept either 'bookingDate' or legacy 'date')
+    const incomingDateRaw = bookingDateRaw || date;
+    const parsedDate = parseIncomingDate(incomingDateRaw);
+    if (incomingDateRaw && !parsedDate) {
+      return res.status(400).json({
+        isSuccess: false,
+        message: 'Invalid date. Please provide a valid date in ISO format.'
+      });
+    }
+    if (parsedDate) {
+      // normalize to UTC midnight
+      parsedDate.setUTCHours(0, 0, 0, 0);
+      // prevent past-date bookings
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      if (parsedDate < today) {
+        return res.status(400).json({
+          isSuccess: false,
+          message: 'Cannot create booking for a past date.'
+        });
+      }
+      bookingData.bookingDate = parsedDate;
+    }
+
+    // Check holiday / weekoff validity (use booking date if provided, otherwise today)
+    const bookingDateForCheck = bookingData.bookingDate ? new Date(bookingData.bookingDate) : new Date();
+    const isHoliday = await checkIsDayHoliday(bookingDateForCheck);
+    const isWeekOff = await checkIsDayWeekOff(bookingDateForCheck);
+
+    if (isHoliday || isWeekOff) {
+      return res.status(400).json({ isSuccess: false, message: ERRORS.HOLIDAY_WEEKOFF });
+    }
+
+    // generate and attach tokenNumber (server-generated)
     bookingData.tokenNumber = await generateTokenNumber(bookingData.bookingDate);
 
+    // persist
     const booking = new Booking(bookingData);
     const saved = await booking.save();
 
