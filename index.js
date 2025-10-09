@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/connection.js";
-import userRoutes from "./routes/user.js";
+// import userRoutes from "./routes/user.js";
 import bookingRoute from "./routes/bookingRoute.js";
-import adminRoutes from "./routes/admin.js";
+// import adminRoutes from "./routes/admin.js";
 import holidayRoutes from "./routes/holidayRoutes.js";
 import weekoffRoutes from "./routes/weekoffRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
@@ -41,9 +41,9 @@ app.get("/", (req, res) => {
     res.send("Hello from server");
 });
 
-app.use("/api/user", userRoutes);
+// app.use("/api/user", userRoutes);
 app.use("/api/booking", bookingRoute);
-app.use("/api/admin", adminRoutes);
+// app.use("/api/admin", adminRoutes);
 app.use("/api/holiday", holidayRoutes);
 app.use("/api/weekoff", weekoffRoutes);
 app.use("/api/slot", slotRoutes);
