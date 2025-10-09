@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/connection.js";
-// import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import bookingRoute from "./routes/bookingRoute.js";
 // import adminRoutes from "./routes/admin.js";
 import holidayRoutes from "./routes/holidayRoutes.js";
@@ -42,7 +42,7 @@ app.get("/", (req, res) => {
     res.send("Hello from server");
 });
 
-// app.use("/api/user", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/booking", bookingRoute);
 // app.use("/api/admin", adminRoutes);
 app.use("/api/holiday", holidayRoutes);
