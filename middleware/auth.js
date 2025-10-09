@@ -28,8 +28,7 @@ export const authenticateToken = (req, res, next) => {
   }
 
   const token =
-    req.cookies?.access_token ||
-    req.header("Authorization")?.replace("Bearer ", "");
+       req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
     return res.status(401).json({ isSuccess: false, message: MESSAGES.UNAUTHORIZED });
