@@ -11,9 +11,8 @@ const PUBLIC_PATHS = [
   "/api/user/forgot-password",
   "/api/booking",
   "/api/booking/token/:tokenNumber",
-  "/api/slot/availability",
+  "/api/slot/getSlotAvailability",
   "/api/slot/getSlots",
-
 ];
 
 export const authenticateToken = (req, res, next) => {
@@ -22,13 +21,14 @@ export const authenticateToken = (req, res, next) => {
   //     return next();
   //   }
 
+
   // Skip if request matches public paths
   if (PUBLIC_PATHS.includes(req.path)) {
     return next();
   }
 
   const token =
-       req.header("Authorization")?.replace("Bearer ", "");
+    req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
     return res.status(401).json({ isSuccess: false, message: MESSAGES.UNAUTHORIZED });
@@ -39,6 +39,7 @@ export const authenticateToken = (req, res, next) => {
     req.user = payload;
     return next();
   } catch (err) {
+    console.log("Auth middlware error : ", err);
     return res.status(401).json({ isSuccess: false, message: MESSAGES.INVALID_TOKEN });
   }
 };

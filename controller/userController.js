@@ -2,26 +2,50 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { ERRORS, MESSAGES } from "../config/constants.js";
-
+import { ERRORS, MESSAGES, REGEX } from "../config/constants.js";
+import { validateBodyParams } from "./../utility/helper.js"
 dotenv.config({ path: "./../config/config.env" });
 
 export const createUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        const hashedPassword = bcrypt.hashSync(password, 10);
 
+        const requiredParams = ["name", "email", "password"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+
+        if (errorResponse) return; // stop execution if missing params
         // Basic validation
         if (!password || !email || !name) {
             return res.status(400).json({ isSuccess: false, message: MESSAGES.ALL_FIELDS_REQUIRED });
         }
 
+        //Validate
+        const errors = [];
+
+        // Email validation
+        const emailRegex = REGEX.EMAIL;
+        if (!email || typeof email !== "string" || !emailRegex.test(email)) {
+            errors.push(MESSAGES.INVALID_EMAIL);
+        }
+
+        // Password validation
+        if (!password || typeof password !== "string" || password.length < 6) {
+            errors.push(MESSAGES.INVALID_PASSWORD);
+        }
+
+        // If there are validation errors, return them
+        if (errors.length > 0) {
+            return res.status(400).json({
+                isSuccess: false,
+                message: errors.join(", ")
+            });
+        }
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(409).json({ isSuccess: false, message: MESSAGES.USER_ALREADY_EXISTS });
         }
-
+        const hashedPassword = bcrypt.hashSync(password, 10);
         const newUser = new User({ name, email, password: hashedPassword });
         const result = await newUser.save();
 
@@ -33,7 +57,7 @@ export const createUser = async (req, res) => {
             message: MESSAGES.USER_CREATED
         });
     } catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Creating user error:", error);
         res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 };
@@ -50,7 +74,7 @@ export const getUsers = async (req, res) => {
             data: users
         });
     } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("Get users error:", error);
         res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 };
@@ -58,7 +82,9 @@ export const getUsers = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-
+        const requiredParams = ["email", "password"];
+        const errorResponse = await validateBodyParams(req, res, requiredParams);
+        if (errorResponse) return; // stop execution if missing params
         if (!email) {
             return res.status(200).json({ isSuccess: false, message: MESSAGES.EMAIL_REQUIRED });
         }
@@ -76,7 +102,7 @@ export const login = async (req, res) => {
         const token = jwt.sign(
             { email: user.email, id: user._id, name: user.name },
             process.env.JWT_SECRET,
-            { expiresIn: "1d" }
+            { expiresIn: "30d" }
         );
 
         await User.findByIdAndUpdate(user._id, { isLoggedIn: true });
@@ -87,7 +113,7 @@ export const login = async (req, res) => {
 
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({ isSuccess: false, name: error.name, message: ERRORS.INTERNAL });
+        res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 };
 
@@ -117,7 +143,7 @@ export const updatePassword = async (req, res) => {
         }
         return res.status(200).json({ isSuccess: true, message: MESSAGES.PASSWORD_UPDATED });
     } catch (err) {
-        console.error("Error updating password:", err);
+        console.error("Updating password error:", err);
         return res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 }

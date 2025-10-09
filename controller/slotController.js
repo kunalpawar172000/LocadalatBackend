@@ -17,11 +17,10 @@ export const getSlots = async (req, res) => {
             data: slots
         });
     } catch (error) {
-        console.error("Error fetching slots:", error);
+        console.error("Get slots error:", error);
         res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 };
-
 
 export const updateSlot = async (req, res) => {
     try {
@@ -50,7 +49,7 @@ export const updateSlot = async (req, res) => {
             updatedCount: result.modifiedCount
         });
     } catch (error) {
-        console.error("Error updating slots:", error);
+        console.error("Updating slots error:", error);
         res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 };
@@ -208,7 +207,8 @@ export const slotAvailabilityByMonth = async (req, res) => {
 
         res.json({ success: true, data: results });
     } catch (err) {
-        console.error(err);
+                console.error("Slot availability error in get by month :", err);
+
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -237,7 +237,6 @@ export const slotAvailabilityByDays = async (req, res) => {
         endDate.setDate(startDate.getDate() + 15);
 
         const bookings = await getBookingsGroupedByDate(startDate, endDate);
-        console.log("Bookings", bookings);
 
         // Convert bookings array → map for quick lookup
         const bookingMap = {};
@@ -245,7 +244,6 @@ export const slotAvailabilityByDays = async (req, res) => {
             const key = `${b._id.date}_${b._id.slotId}`;
             bookingMap[key] = b.totalBookings;
         });
-        console.log("Booking Map", bookingMap);
 
         // Fetch holidays
         const holidays = await Holiday.find({
@@ -257,11 +255,8 @@ export const slotAvailabilityByDays = async (req, res) => {
             const date = h.date.toISOString().substring(0, 10);
             holidayMap[date] = h.name;
         });
-        console.log("Holiday Map", holidayMap);
-
         // Fetch weekoffs
         const weekoffs = await Weekoff.find({ isActive: true });
-        console.log("Weekoffs", weekoffs);
 
         const dayNames = [
             "sunday",
@@ -329,7 +324,7 @@ export const slotAvailabilityByDays = async (req, res) => {
 
         res.json({ success: true, data: results });
     } catch (err) {
-        console.error(err);
+        console.error("Slot availability error :", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };

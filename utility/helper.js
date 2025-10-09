@@ -76,8 +76,19 @@ export const checkIsDayHoliday = async (date) => {
 }
 
 export const isHolidayExistInDb = async (id) => {
-    const isHolidayExist = await Holiday.findById(id);
+    const isHolidayExist = await Holiday.findOne({ _id: id, isActive: true });
     if (!isHolidayExist) return false
-    return true;
+    return isHolidayExist;
 }
+export const checkIsWeekOffExistById = async (id) => {
+    const isWeekoffExist = await Weekoff.findOne({ _id: id, isActive: true });
+    if (!isWeekoffExist) return false
+    return isWeekoffExist;
+}
+export const checkIsWeekOffExistForWeekDay = async (weekday) => {
+    const isWeekoffExist = await Weekoff.findOne({ weekday });
+    if (!isWeekoffExist) return false
+    return isWeekoffExist;
+}
+
 

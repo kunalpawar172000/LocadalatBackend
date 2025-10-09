@@ -12,10 +12,14 @@ import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
 
-connectDB().catch((message, error) => {
-    console.log(message);
+connectDB()
+    .then(() => {
+        console.log("Database connected successfully");
+    })
+    .catch((error) => {
+        console.error("Database connection failed:", error.message);
+    });
 
-});
 
 const app = express();
 

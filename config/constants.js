@@ -36,7 +36,7 @@ export const MESSAGES = {
   FAILED_UPDATE_HOLIDAY: 'Failed to update holiday',
   HOLIDAY_UPDATED: 'Holiday updated successfully',
   CANNOT_DELETE_PAST_HOLIDAY: 'Cannot delete a holiday in the past',
-  CANNOT_ADD_HOLIDAY_ON_BOOKING:"Cannot add holiday on a date with existing bookings",
+  CANNOT_ADD_HOLIDAY_ON_BOOKING: "Cannot add holiday on a date with existing bookings",
   FAILED_DELETE_HOLIDAY: 'Failed to delete holiday',
   HOLIDAY_DELETED: 'Holiday deleted successfully',
   ALL_FIELDS_REQUIRED: 'All fields are required',
@@ -44,13 +44,14 @@ export const MESSAGES = {
   EMAIL_AND_NEW_PASSWORD_REQUIRED: 'Email and new password are required',
   FAILED_CREATE_WEEKOFF: 'Failed to create week off',
   FAILED_FETCH_WEEKOFFS: 'Failed to fetch weekoffs',
-  WEEKDAY_VALIDATION_FAILED: "Weekday must be between 0 (Sunday) and 6 (Saturday)" ,
-  WEEK_VALIDATION_FAILED: "Weeks must be an array of numbers between 0 and 5" ,
+  WEEKDAY_VALIDATION_FAILED: "Weekday must be between 0 (Sunday) and 6 (Saturday)",
+  WEEK_VALIDATION_FAILED: "Weeks must be an array of numbers between 1 and 5",
   VALID_FROM_TO_REQUIRED: 'validFrom and validTo are required for non-recurring week off',
   VALID_FROM_AFTER_VALID_TO: 'validFrom cannot be after validTo',
   FAILED_UPDATE_WEEKOFF: 'Failed to update weekoff',
   WEEKOFF_UPDATED: 'Weekoff updated successfully',
   WEEKOFF_NOT_FOUND: 'Weekoff not found',
+  WEEKOFF_ALREADY_EXISTS: 'Weekoff for this weekday already exists',
   WEEKOFF_DELETED: 'Weekoff deleted successfully',
   FAILED_DELETE_WEEKOFF: 'Failed to delete Weekoff ',
   UNAUTHORIZED: 'Unauthorized',
@@ -60,7 +61,10 @@ export const MESSAGES = {
   SLOT_UPDATED_SUCCESS: " Slot updated successfully",
   FAILED_UPDATE_SLOTS: 'Failed to update slots',
   SLOT_SIZE_REQUIRED: 'slotSize is required',
-  SLOTS_NOT_FOUND: 'No active slots found'
+  SLOTS_NOT_FOUND: 'No active slots found',
+
+  INVALID_EMAIL: "Email is invalid",
+  INVALID_PASSWORD: "Password  must be at least 6 characters long",
 };
 
 export const API_PATHS = {
@@ -77,5 +81,9 @@ export const MODEL_NAMES = {
   BOOKING: 'Booking',
   USER: 'User'
 };
+
+export const REGEX = {
+  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+}
 
 export default { ERRORS, API_PATHS, MODEL_NAMES };
