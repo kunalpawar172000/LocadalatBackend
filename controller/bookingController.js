@@ -19,8 +19,12 @@ export const createBooking = async (req, res) => {
       email,
       phone,
       date,
+      courtCaseNo,
       vehicleNo,
-      chalanNo
+      chalanNo,
+      slot,
+      slotId,
+      name
     } = req.body;
 
     // basic validation
@@ -43,7 +47,7 @@ export const createBooking = async (req, res) => {
       end.setHours(23, 59, 59, 999);
 
       const bookingsTodayCount = await Booking.countDocuments({
-        date: { $gte: start, $lte: end }
+        bookingDate: { $gte: start, $lte: end }
       });
 
       const serialNumber = (bookingsTodayCount + 1).toString().padStart(3, '0');
@@ -59,26 +63,65 @@ export const createBooking = async (req, res) => {
       chalanNo
     };
 
-    if (status) bookingData.status = status;
-    if (user) bookingData.user = user;
-    else if (req.user && req.user.id) bookingData.user = req.user.id;
+    // persist slot as a top-level field for easier queries (prefer top-level over metadata)
+    if (slot) bookingData.slot = slot;
+    else if (metadata && metadata.slot) bookingData.slot = metadata.slot;
+
+    // prefer explicit courtCaseNo field, otherwise allow it in metadata
+    if (courtCaseNo) bookingData.courtCaseNo = courtCaseNo;
+    else if (metadata && metadata.courtCaseNo) bookingData.courtCaseNo = metadata.courtCaseNo;
+
+  // slot identifier (if provided)
+  if (slotId) bookingData.slotId = slotId;
+
+  // name/email: try top-level, then legacy customerName, then metadata
+  if (name) bookingData.name = name;
+  else if (customerName) bookingData.name = customerName;
+  
+
+  if (email) bookingData.email = email;
+  else if (metadata && metadata.guestEmail) bookingData.email = metadata.guestEmail;
+
+  if (status) bookingData.status = status;
+  if (user) bookingData.userId = user;
+  else if (req.user && req.user.id) bookingData.userId = req.user.id;
     else {
-      // treat the provided customerName/email as guest details
+      // Backward-compatibility: older clients may send top-level customerName/email.
+      // Keep supporting that shape by mapping them into metadata (guestName/guestEmail).
+      // New clients should prefer providing guest info inside metadata directly.
       if (customerName) bookingData.metadata = { ...bookingData.metadata, guestName: customerName };
       if (email) bookingData.metadata = { ...bookingData.metadata, guestEmail: email };
     }
 
-    // parse date if provided
-    if (date) {
-      const parsed = new Date(date);
-      if (!isNaN(parsed)) bookingData.date = parsed;
+    // set userName for clarity: prefer authenticated user's name, else fetch from User model when user id provided
+    if (req.user && req.user.name) {
+      bookingData.userName = req.user.name;
+    } else if (bookingData.userId) {
+      try {
+        const User = (await import('../models/userModel.js')).default;
+        const u = await User.findById(bookingData.userId).select('name');
+        if (u && u.name) bookingData.userName = u.name;
+      } catch (e) {
+        // ignore failures to fetch user name — not critical
+      }
+    }
+
+    // parse bookingDate if provided (accept either 'bookingDate' or legacy 'date')
+    const incomingDate = req.body.bookingDate || req.body.date;
+    if (incomingDate) {
+      const parsed = new Date(incomingDate);
+      if (!isNaN(parsed)) {
+        // normalize to UTC midnight
+        parsed.setUTCHours(0, 0, 0, 0);
+        bookingData.bookingDate = parsed;
+      }
     }
 
     // NOTE: we don't validate metadata.holidayId here — booking validity is determined
     // by the booking date using the holiday/weekoff helpers.
 
     // Check holiday / weekoff validity (use booking date if provided, otherwise today)
-    const bookingDateForCheck = bookingData.date ? new Date(bookingData.date) : new Date();
+  const bookingDateForCheck = bookingData.bookingDate ? new Date(bookingData.bookingDate) : new Date();
     const isHoliday = await checkIsDayHoliday(bookingDateForCheck);
     const isWeekOff = await checkIsDayWeekOff(bookingDateForCheck);
 
@@ -86,13 +129,13 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ isSuccess: false, message: ERRORS.HOLIDAY_WEEKOFF });
     }
 
-    // generate and attach tokenNumber
-    bookingData.tokenNumber = await generateTokenNumber(bookingData.date);
+  // generate and attach tokenNumber
+  bookingData.tokenNumber = await generateTokenNumber(bookingData.bookingDate);
 
     const booking = new Booking(bookingData);
     const saved = await booking.save();
 
-    const populated = await Booking.findById(saved._id).populate('user', '_id email name');
+  const populated = await Booking.findById(saved._id).populate('userId', '_id email name');
 
   return res.status(201).json({ isSuccess: true, data: populated });
     } catch (err) {
@@ -118,7 +161,7 @@ export const getBookingStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
     const totalAmount = (totalAmountAgg[0] && totalAmountAgg[0].total) || 0;
-    const recent = await Booking.find({}).sort({ createdAt: -1 }).limit(recentLimit).select("_id user status amount createdAt");
+  const recent = await Booking.find({}).sort({ createdAt: -1 }).limit(recentLimit).select("_id userId status amount createdAt");
   res.json({ isSuccess: true, data: { totalCount, totalAmount, byStatus, recent } });
   } catch (err) {
     console.error("Error in getBookingStats:", err);
@@ -136,30 +179,30 @@ export const getAppointments = async (req, res) => {
 
     const filter = {};
 
-    // Date exact match (same day)
+    // Date exact match (same day) - match by bookingDate (scheduled appointment date)
     if (date) {
       const d = new Date(date);
       const start = new Date(d.setHours(0, 0, 0, 0));
       const end = new Date(d.setHours(23, 59, 59, 999));
-      filter.createdAt = { $gte: start, $lte: end };
+      filter.bookingDate = { $gte: start, $lte: end };
     }
 
-    // Date range
+    // Date range (by bookingDate)
     if (fromDate || toDate) {
-      filter.createdAt = filter.createdAt || {};
+      filter.bookingDate = filter.bookingDate || {};
       if (fromDate) {
         const f = new Date(fromDate);
-        filter.createdAt.$gte = new Date(f.setHours(0, 0, 0, 0));
+        filter.bookingDate.$gte = new Date(f.setHours(0, 0, 0, 0));
       }
       if (toDate) {
         const t = new Date(toDate);
-        filter.createdAt.$lte = new Date(t.setHours(23, 59, 59, 999));
+        filter.bookingDate.$lte = new Date(t.setHours(23, 59, 59, 999));
       }
     }
 
-    // Slot in metadata
+    // Slot (top-level field)
     if (slot) {
-      filter['metadata.slot'] = slot;
+      filter['slot'] = slot;
     }
 
     // Basic search: booking id, metadata fields, user email
@@ -173,22 +216,20 @@ export const getAppointments = async (req, res) => {
       const matchedUsers = await User.find({ $or: [{ email: searchRegex }, { name: searchRegex }] }, "_id");
       userIdsFromEmail = matchedUsers.map(u => u._id);
 
-      // Add $or filter
       filter.$or = [
         { _id: search }, // allow searching by exact id
-        { 'metadata.phone': searchRegex },
-        { 'metadata.patientName': searchRegex },
-        { user: { $in: userIdsFromEmail } }
+        { 'metadata.phone': searchRegex },       
+        { userId: { $in: userIdsFromEmail } }
       ];
     }
 
     const total = await Booking.countDocuments(filter);
 
     const bookings = await Booking.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ bookingDate: -1, createdAt: -1 })
       .skip((pageNum - 1) * pageSize)
       .limit(pageSize)
-      .populate('user', '_id email name')
+  .populate('userId', '_id email name')
       .lean();
 
     res.json({
@@ -212,7 +253,7 @@ export const getBookingById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ isSuccess: false, message: ERRORS.INVALID_BOOKING_ID });
     }
-    const booking = await Booking.findById(id).populate('user', '_id email name');
+  const booking = await Booking.findById(id).populate('userId', '_id email name');
   if (!booking) return res.status(404).json({ isSuccess: false, message: ERRORS.BOOKING_NOT_FOUND });
     return res.status(200).json({ isSuccess: true, data: booking });
     } catch (err) {
@@ -226,7 +267,7 @@ export const getBookingByToken = async (req, res) => {
   try {
     const { tokenNumber } = req.params;
   if (!tokenNumber) return res.status(400).json({ isSuccess: false, message: ERRORS.TOKEN_REQUIRED });
-    const booking = await Booking.findOne({ tokenNumber }).populate('user', '_id email name');
+  const booking = await Booking.findOne({ tokenNumber }).populate('userId', '_id email name');
   if (!booking) return res.status(404).json({ isSuccess: false, message: ERRORS.TOKEN_NOT_FOUND });
   return res.status(200).json({ isSuccess: true, data: booking });
   } catch (err) {
@@ -250,7 +291,7 @@ export const getBookingsInRange = async (req, res) => {
     from.setHours(0, 0, 0, 0);
     to.setHours(23, 59, 59, 999);
 
-    const bookingsInRange = await Booking.find({ date: { $gte: from, $lte: to } }).populate('user', '_id email name').lean();
+  const bookingsInRange = await Booking.find({ bookingDate: { $gte: from, $lte: to } }).populate('userId', '_id email name').lean();
     if (!bookingsInRange || bookingsInRange.length === 0) {
       return res.status(404).json({ isSuccess: false, message: ERRORS.NO_BOOKINGS_IN_RANGE });
     }
