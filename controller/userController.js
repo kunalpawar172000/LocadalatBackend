@@ -76,14 +76,14 @@ export const login = async (req, res) => {
         const token = jwt.sign(
             { email: user.email, id: user._id, name: user.name },
             process.env.JWT_SECRET,
-            { expiresIn: "10m" }
+            { expiresIn: "1d" }
         );
 
         await User.findByIdAndUpdate(user._id, { isLoggedIn: true });
 
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });
-    res.status(200).json({ isSuccess: true, message: MESSAGES.LOGIN_SUCCESS, user: { id: user._id, email: user.email }, access_token: token });
+        res.status(200).json({ isSuccess: true, message: MESSAGES.LOGIN_SUCCESS, user: { id: user._id, email: user.email }, access_token: token });
 
     } catch (error) {
         console.error("Login error:", error);
@@ -106,7 +106,7 @@ export const updatePassword = async (req, res) => {
         }
 
         // Hash the new password
-    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
         // Update and save password
         user.password = hashedPassword;
@@ -124,5 +124,4 @@ export const updatePassword = async (req, res) => {
 
 export const logout = () => {
     console.log("Logout called");
-
 }

@@ -1,7 +1,9 @@
 import express from "express";
-import { getSlots } from "../controller/slotController.js";
+import { getSlots, updateSlot, slotAvailabilityByMonth,slotAvailabilityByDays } from "../controller/slotController.js";
 const router = express.Router();
 
-router.get("/getSlots",getSlots);
+router.get("/getSlots", getSlots);
+router.get("/getSlotAvailability", slotAvailabilityByDays);
+router.put("/updateSlot", updateSlot);
 
 export default router;

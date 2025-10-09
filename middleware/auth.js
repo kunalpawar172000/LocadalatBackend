@@ -8,14 +8,19 @@ dotenv.config({ path: "./../config/config.env" });
 const PUBLIC_PATHS = [
   "/",
   "/api/user/login",
-  "/api/user/forgot-password"
+  "/api/user/forgot-password",
+  "/api/booking",
+  "/api/booking/token/:tokenNumber",
+  "/api/slot/availability",
+  "/api/slot/getSlots",
+
 ];
 
 export const authenticateToken = (req, res, next) => {
   // Skip OPTIONS requests
-//   if (req.method === "OPTIONS") {
-//     return next();
-//   }
+  //   if (req.method === "OPTIONS") {
+  //     return next();
+  //   }
 
   // Skip if request matches public paths
   if (PUBLIC_PATHS.includes(req.path)) {
@@ -23,8 +28,7 @@ export const authenticateToken = (req, res, next) => {
   }
 
   const token =
-    req.cookies?.access_token ||
-    req.header("Authorization")?.replace("Bearer ", "");
+       req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
     return res.status(401).json({ isSuccess: false, message: MESSAGES.UNAUTHORIZED });

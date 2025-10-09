@@ -14,7 +14,7 @@ router.get("/stats", getBookingStats);
 router.post("/", createBooking);
 
 // Admin endpoint (merged): GET /api/booking/admin/appointments
-router.get("/admin/appointments", authenticateToken, getAppointments);
+router.get("/admin/appointments",  getAppointments);
 
 // GET /api/booking/token/:tokenNumber - fetch booking by token
 router.get('/token/:tokenNumber', getBookingByToken);
