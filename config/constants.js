@@ -36,6 +36,7 @@ export const MESSAGES = {
   FAILED_UPDATE_HOLIDAY: 'Failed to update holiday',
   HOLIDAY_UPDATED: 'Holiday updated successfully',
   CANNOT_DELETE_PAST_HOLIDAY: 'Cannot delete a holiday in the past',
+  CANNOT_ADD_HOLIDAY_ON_BOOKING:"Cannot add holiday on a date with existing bookings",
   FAILED_DELETE_HOLIDAY: 'Failed to delete holiday',
   HOLIDAY_DELETED: 'Holiday deleted successfully',
   ALL_FIELDS_REQUIRED: 'All fields are required',

@@ -8,7 +8,7 @@ import bookingRoute from "./routes/bookingRoute.js";
 import holidayRoutes from "./routes/holidayRoutes.js";
 import weekoffRoutes from "./routes/weekoffRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
-// import { authenticateToken } from "./middleware/auth.js";
+import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
 
 
@@ -36,7 +36,9 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded()); // <-- parse form-encoded bodies
-// app.use(authenticateToken);
+
+
+app.use(authenticateToken);
 
 app.get("/", (req, res) => {
     res.send("Hello from server");

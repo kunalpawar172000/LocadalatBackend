@@ -1,5 +1,5 @@
 import { Holiday } from "../models/holidayModel.js";
-
+import Booking from "../models/bookingModel.js";
 import { checkIsDayWeekOff, isHolidayExistInDb, checkIsDayHoliday, validateBodyParams } from "./../utility/helper.js"
 import { ERRORS, MESSAGES } from "../config/constants.js";
 
@@ -22,6 +22,12 @@ export const createHoliday = async (req, res) => {
             if (holidayDate <= today) return res.status(400).json({ isSuccess: false, message: MESSAGES.INVALID_HOLIDAY_DATE });
         }
         //validation here to not add holidy if that day has bookings or check if that date has weekoffs
+
+        const bookings = await Booking.find({ bookingDate: new Date(date) });
+
+        if (bookings && bookings.length) {
+            return res.status(409).json({ isSuccess: false, message: MESSAGES.CANNOT_ADD_HOLIDAY_ON_BOOKING });
+        }
 
         const isDayWeekOff = await checkIsDayWeekOff(date);
 
@@ -74,17 +80,26 @@ export const updateHoliday = async (req, res) => {
             if (holidayDate <= today) return res.status(400).json({ isSuccess: false, message: MESSAGES.INVALID_HOLIDAY_DATE });
         }
         if (new Date(isHolidayExist.date) !== new Date(date)) {
+
             const isDayWeekOff = await checkIsDayWeekOff(date);
             if (isDayWeekOff) {
                 return res.status(409).json({ isSuccess: false, message: MESSAGES.CANNOT_ADD_HOLIDAY_ON_WEEKOFF });
             }
             const existingHoliday = await checkIsDayHoliday(date);
             if (existingHoliday) return res.status(409).json({ isSuccess: false, message: MESSAGES.HOLIDAY_ALREADY_EXISTS });
+
+            const bookings = await Booking.find({ bookingDate: new Date(date) });
+
+            if (bookings && bookings.length) {
+                return res.status(409).json({ isSuccess: false, message: MESSAGES.CANNOT_ADD_HOLIDAY_ON_BOOKING });
+            }
         }
         const holiday = await Holiday.findByIdAndUpdate(id, { name, date, recurring, region, isActive }, { new: true });
         if (!holiday) return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_UPDATE_HOLIDAY });
         return res.status(200).json({ isSuccess: true, message: MESSAGES.HOLIDAY_UPDATED });
     } catch (err) {
+        console.log(err);
+
         return res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
 }

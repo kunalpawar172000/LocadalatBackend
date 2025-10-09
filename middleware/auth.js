@@ -8,14 +8,19 @@ dotenv.config({ path: "./../config/config.env" });
 const PUBLIC_PATHS = [
   "/",
   "/api/user/login",
-  "/api/user/forgot-password"
+  "/api/user/forgot-password",
+  "/api/booking",
+  "/api/booking/token/:tokenNumber",
+  "/api/slot/availability",
+  "/api/slot/getSlots",
+
 ];
 
 export const authenticateToken = (req, res, next) => {
   // Skip OPTIONS requests
-//   if (req.method === "OPTIONS") {
-//     return next();
-//   }
+  //   if (req.method === "OPTIONS") {
+  //     return next();
+  //   }
 
   // Skip if request matches public paths
   if (PUBLIC_PATHS.includes(req.path)) {
