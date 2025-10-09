@@ -9,6 +9,9 @@ dotenv.config({ path: "./config/config.env" });
 // Create a new booking/appointment (slot removed, slotId kept)
 export const createBooking = async (req, res) => {
   try {
+    // Accept a wider set of fields for the booking (keeps backwards compatibility)
+   const body = req.body || {};
+ 
     const body = req.body || {};
 
     const {

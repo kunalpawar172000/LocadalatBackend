@@ -43,16 +43,23 @@ export const MESSAGES = {
   EMAIL_AND_NEW_PASSWORD_REQUIRED: 'Email and new password are required',
   FAILED_CREATE_WEEKOFF: 'Failed to create week off',
   FAILED_FETCH_WEEKOFFS: 'Failed to fetch weekoffs',
-  WEEKS_OF_MONTH_REQUIRED: 'weeksOfMonth is required for recurring week off when everyWeek is false',
+  WEEKDAY_VALIDATION_FAILED: "Weekday must be between 0 (Sunday) and 6 (Saturday)" ,
+  WEEK_VALIDATION_FAILED: "Weeks must be an array of numbers between 0 and 5" ,
   VALID_FROM_TO_REQUIRED: 'validFrom and validTo are required for non-recurring week off',
   VALID_FROM_AFTER_VALID_TO: 'validFrom cannot be after validTo',
   FAILED_UPDATE_WEEKOFF: 'Failed to update weekoff',
   WEEKOFF_UPDATED: 'Weekoff updated successfully',
   WEEKOFF_NOT_FOUND: 'Weekoff not found',
   WEEKOFF_DELETED: 'Weekoff deleted successfully',
+  FAILED_DELETE_WEEKOFF: 'Failed to delete Weekoff ',
   UNAUTHORIZED: 'Unauthorized',
   INVALID_TOKEN: 'Invalid token',
   NOT_FOUND_ROUTE: 'No API found for this route',
+
+  SLOT_UPDATED_SUCCESS: " Slot updated successfully",
+  FAILED_UPDATE_SLOTS: 'Failed to update slots',
+  SLOT_SIZE_REQUIRED: 'slotSize is required',
+  SLOTS_NOT_FOUND: 'No active slots found'
 };
 
 export const API_PATHS = {

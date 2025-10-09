@@ -12,8 +12,8 @@ export const createHoliday = async (req, res) => {
         const errorResponse = await validateBodyParams(req, res, requiredParams);
         if (errorResponse) return; // stop execution if missing params
 
-    if (!name) return res.status(400).json({ isSuccess: false, message: MESSAGES.NAME_REQUIRED });
-    if (!date) return res.status(400).json({ isSuccess: false, message: MESSAGES.DATE_REQUIRED });
+        if (!name) return res.status(400).json({ isSuccess: false, message: MESSAGES.NAME_REQUIRED });
+        if (!date) return res.status(400).json({ isSuccess: false, message: MESSAGES.DATE_REQUIRED });
 
         if (date) {
             const holidayDate = new Date(date);
@@ -31,7 +31,7 @@ export const createHoliday = async (req, res) => {
 
         // Check for duplicate holiday on the same date
         const existingHoliday = await checkIsDayHoliday(date);
-    if (existingHoliday) return res.status(409).json({ isSuccess: false, message: MESSAGES.HOLIDAY_ALREADY_EXISTS });
+        if (existingHoliday) return res.status(409).json({ isSuccess: false, message: MESSAGES.HOLIDAY_ALREADY_EXISTS });
 
         const holiday = new Holiday({ name, date, recurring });
         const result = await holiday.save();
@@ -64,8 +64,8 @@ export const updateHoliday = async (req, res) => {
         const requiredParams = ["name", "recurring", "date"];
         const errorResponse = await validateBodyParams(req, res, requiredParams);
         if (errorResponse) return; // stop execution if missing params
-    const isHolidayExist = isHolidayExistInDb(id);
-    if (!isHolidayExist) return res.status(404).json({ isSuccess: false, message: MESSAGES.HOLIDAY_NOT_FOUND });
+        const isHolidayExist = isHolidayExistInDb(id);
+        if (!isHolidayExist) return res.status(404).json({ isSuccess: false, message: MESSAGES.HOLIDAY_NOT_FOUND });
 
         if (date) {
             const holidayDate = new Date(date);
@@ -82,8 +82,8 @@ export const updateHoliday = async (req, res) => {
             if (existingHoliday) return res.status(409).json({ isSuccess: false, message: MESSAGES.HOLIDAY_ALREADY_EXISTS });
         }
         const holiday = await Holiday.findByIdAndUpdate(id, { name, date, recurring, region, isActive }, { new: true });
-    if (!holiday) return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_UPDATE_HOLIDAY });
-    return res.status(200).json({ isSuccess: true, message: MESSAGES.HOLIDAY_UPDATED });
+        if (!holiday) return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_UPDATE_HOLIDAY });
+        return res.status(200).json({ isSuccess: true, message: MESSAGES.HOLIDAY_UPDATED });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }
@@ -105,8 +105,8 @@ export const deleteHoliday = async (req, res) => {
             { isActive: false },
             { new: true }
         );
-    if (!holiday) return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_DELETE_HOLIDAY });
-    return res.status(200).json({ isSuccess: true, message: MESSAGES.HOLIDAY_DELETED });
+        if (!holiday) return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_DELETE_HOLIDAY });
+        return res.status(200).json({ isSuccess: true, message: MESSAGES.HOLIDAY_DELETED });
     } catch (err) {
         return res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL });
     }

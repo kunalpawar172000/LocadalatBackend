@@ -21,8 +21,8 @@ import mongoose from "mongoose";
 
 
 const weekoffSchema = new mongoose.Schema({
-  weekday: { type: Number, min: 0, max: 6, required: true,unique: true }, // 0=Sunday ... 6=Saturday
-  weeks: [{ type: Number, min: 1, max: 5 }],
+  weekday: { type: Number, min: 0, max: 6, required: true, unique: true }, // 0=Sunday ... 6=Saturday
+  weeks: [{ type: Number, min: 0, max: 5, required: true }],
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

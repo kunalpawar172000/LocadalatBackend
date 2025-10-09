@@ -1,205 +1,100 @@
-
-import { Weekoff } from "../models/weekoffModel.js";
+import { Weekoff } from "./../models/weekoffModel.js";
 import { validateBodyParams } from "../utility/helper.js";
-import { ERRORS, MESSAGES } from "../config/constants.js";
+import { ERRORS, MESSAGES } from "./../config/constants.js"
+export const createWeekoff = async (req, res) => {
+    try {
+
+        const { weekday, weeks } = req.body;
+
+        // required fields check
+        const validatebody = await validateBodyParams(req, res, ["weekday", "weeks"]);
+        if (validatebody)
+            return
+
+
+        // weekday validation (0–6)
+        if (weekday < 0 || weekday > 6) {
+            return res.status(400).json({ isSuccess: false, message: MESSAGES.WEEKDAY_VALIDATION_FAILED });
+        }
+
+        // weeks validation (array with values 1–5)
+        if (!Array.isArray(weeks) || weeks.some((w) => w < 0 || w > 5)) {
+            return res.status(400).json({ isSuccess: false, message: MESSAGES.WEEK_VALIDATION_FAILED });
+        }
+
+        const weekoff = new Weekoff({ weekday, weeks });
+        const result = await weekoff.save();
+
+        if (!result) {
+            return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_CREATE_WEEKOFF });
+        }
+
+        res.status(201).json({ isSuccess: true, message:MESSAGES.WEEKOFF_CREATED});
+    } catch (error) {
+        res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL_SERVER_ERROR });
+    }
+};
+
 
 export const getWeekoffs = async (req, res) => {
     try {
-        const weekoffs = await Weekoff.find({ isActive: true });
-        if(!weekoffs){
-            return res.status(404).json({
-                isSuccess: false,
-                message: MESSAGES.FAILED_FETCH_WEEKOFFS
-            });
-        }
-        return res.status(200).json({
-            isSuccess: true,
-            data: weekoffs
-        });
-    } catch (err) {
-        return res.status(500).json({
-            isSuccess: false,
-            message: ERRORS.INTERNAL
-        });
+        const weekoffs = await Weekoff.find();
+        res.status(200).json({ isSuccess: true, data: weekoffs });
+    } catch (error) {
+        res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL_SERVER_ERROR });
     }
 };
 
-export const createWeekOff = async (req, res) => {
-    try {
-        const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
-
-        // If any parameter is missing, the response is sent and function returns
-        const requiredParams = ["dayOfWeek", "recurring"];
-        const errorResponse = await validateBodyParams(req, res, requiredParams);
-        if (errorResponse) return; // stop execution if missing params
-
-        let weekOffDoc;
-
-        if (recurring) {
-            // 3a. Every week case
-            if (everyWeek) {
-                weekOffDoc = new Weekoff({
-                    dayOfWeek,
-                    recurring,
-                    everyWeek
-                });
-            }
-            // 3b. Specific weeksOfMonth case
-            else {
-                if (!weeksOfMonth || !Array.isArray(weeksOfMonth) || weeksOfMonth.length === 0) {
-                    return res.status(400).json({
-                        isSuccess: false,
-                        message: MESSAGES.WEEKS_OF_MONTH_REQUIRED
-                    });
-                }
-                weekOffDoc = new Weekoff({
-                    dayOfWeek,
-                    weeksOfMonth,
-                    recurring: true,
-                    everyWeek: false
-                });
-            }
-        } else {
-            // 4. Non-recurring → validFrom & validTo required
-            if (!validFrom || !validTo) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: MESSAGES.VALID_FROM_TO_REQUIRED
-                });
-            }
-            if (new Date(validFrom) > new Date(validTo)) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: MESSAGES.VALID_FROM_AFTER_VALID_TO
-                });
-            }
-
-            weekOffDoc = new Weekoff({
-                dayOfWeek,
-                recurring: false,
-                validFrom,
-                validTo
-            });
-        }
-
-        // 5. Save to DB
-        const result = await weekOffDoc.save();
-
-        if (!result) {
-            return res.status(500).json({
-                isSuccess: false,
-                message: MESSAGES.FAILED_CREATE_WEEKOFF
-            });
-        }
-        return res.status(201).json({
-            isSuccess: true,
-            message: MESSAGES.WEEKOFF_CREATED
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            isSuccess: false,
-            message: ERRORS.INTERNAL
-        });
-    }
-};
 
 export const updateWeekoff = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { dayOfWeek, weeksOfMonth, recurring, everyWeek, validFrom, validTo } = req.body;
+        const { weekday, weeks } = req.body;
 
-        // If any parameter is missing, the response is sent and function returns
-        const requiredParams = ["dayOfWeek", "recurring"];
-        const errorResponse = await validateBodyParams(req, res, requiredParams);
-        if (errorResponse) return; // stop execution if missing params
+        const validatebody = await validateBodyParams(req, res, ["weekday", "weeks"]);
+        if (validatebody) return;
 
-        let updateData = { dayOfWeek, recurring };
-
-        if (recurring) {
-            // 3a. Every week case
-            if (everyWeek) {
-                updateData.everyWeek = true;
-                updateData.weeksOfMonth = []; // clear weeksOfMonth if it exists
-            }
-            // 3b. Specific weeksOfMonth case
-            else {
-                if (!weeksOfMonth || !Array.isArray(weeksOfMonth) || weeksOfMonth.length === 0) {
-                    return res.status(400).json({
-                        isSuccess: false,
-                        message: MESSAGES.WEEKS_OF_MONTH_REQUIRED
-                    });
-                }
-                updateData.weeksOfMonth = weeksOfMonth;
-                updateData.everyWeek = false;
-            }
-            // Remove date fields for recurring
-            updateData.validFrom = undefined;
-            updateData.validTo = undefined;
-        } else {
-            // 4. Non-recurring → validFrom & validTo required
-
-            if (!validFrom || !validTo) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: MESSAGES.VALID_FROM_TO_REQUIRED
-                });
-            }
-            if (new Date(validFrom) > new Date(validTo)) {
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: MESSAGES.VALID_FROM_AFTER_VALID_TO
-                });
-            }
-            updateData.validFrom = validFrom;
-            updateData.validTo = validTo;
-            updateData.everyWeek = false;
-            updateData.weeksOfMonth = [];
+        // validations again
+        if (weekday < 0 || weekday > 6) {
+            return res.status(400).json({ isSuccess: false, message: "Weekday must be between 0 and 6" });
+        }
+        if (!Array.isArray(weeks) || weeks.some((w) => w < 0 || w > 5)) {
+            return res.status(400).json({ isSuccess: false, message: "Weeks must be an array of numbers between 0 and 5" });
         }
 
-        // 5. Update in DB
-        const updatedDoc = await Weekoff.findOneAndUpdate(
-            { _id: id, isActive: true },
-            updateData,
-            { new: true }
-        );
+        const isWeekOffExists = await Weekoff.findById(req.params.id);
+        if (!isWeekOffExists) {
+            return res.status(404).json({ isSuccess: false, message: "Weekoff not found" });
+        }
 
-        if (!updatedDoc) {
+        const weekoff = await Weekoff.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+        if (!weekoff) {
             return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_UPDATE_WEEKOFF });
         }
-
-        return res.status(200).json({
-            isSuccess: true,
-            message: MESSAGES.WEEKOFF_UPDATED
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            isSuccess: false,
-            message: ERRORS.INTERNAL
-        });
+        res.status(200).json({ isSuccess: true, data: weekoff });
+    } catch (error) {
+        res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL_SERVER_ERROR });
     }
 };
 
-export const deleteWeekOff = async (req, res) => {
+
+export const deleteWeekoff = async (req, res) => {
     try {
-        const { id } = req.params;
-        const deletedDoc = await Weekoff.findOneAndUpdate(
-            { _id: id, isActive: true },
-            { isActive: false },
-            { new: true }
-        );
-        if (!deletedDoc) {
-            return res.status(404).json({ isSuccess: false, message: MESSAGES.WEEKOFF_NOT_FOUND });
+        const isWeekOffExists = await Weekoff.findById(req.params.id);
+        if (!isWeekOffExists) {
+            return res.status(404).json({ isSuccess: false, message: "Weekoff not found" });
         }
-        return res.status(200).json({
-            isSuccess: true,
-            message: MESSAGES.WEEKOFF_DELETED
-        });
-    } catch (err) {
-        return res.status(500).json({
-            isSuccess: false,
-            message: ERRORS.INTERNAL
-        });
+
+        const result = await Weekoff.findByIdAndDelete(req.params.id);
+        if (!result) {
+            return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_DELETE_WEEKOFF });
+        }
+
+        res.status(200).json({ isSuccess: true, message: "Weekoff deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ isSuccess: false, message: ERRORS.INTERNAL_SERVER_ERROR });
     }
-}
+};
+
