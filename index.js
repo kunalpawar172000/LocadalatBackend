@@ -10,6 +10,7 @@ import weekoffRoutes from "./routes/weekoffRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
 import { authenticateToken } from "./middleware/auth.js";
 import cookieParser from "cookie-parser";
+// import Slot from "./models/slotModel.js";
 
 
 connectDB()
@@ -55,25 +56,24 @@ app.use("/api/holiday", holidayRoutes);
 app.use("/api/weekoff", weekoffRoutes);
 app.use("/api/slot", slotRoutes);
 
-// import Slot from "./models/slotModel.js";
-//     // Create slot documents
-//     const slots = [
-//       {
-//         name: "Morning Slot",
-//         startTime: "10:00",
-//         endTime: "13:00",  // 1 PM
-//         quotaForSlot: "50",  // example quota
-//       },
-//       {
-//         name: "Evening Slot",
-//         startTime: "14:00", // 2 PM
-//         endTime: "17:00",   // 5 PM
-//         quotaForSlot: "50", // example quota
-//       }
-//     ];
-//     // Insert into MongoDB
-//     await Slot.insertMany(slots);
-//     console.log("Slots inserted successfully ✅");
+    // Create slot documents
+    // const slots = [
+    //   {
+    //     name: "Morning Slot",
+    //     startTime: "10:00",
+    //     endTime: "13:00",  // 1 PM
+    //     quotaForSlot: "50",  // example quota
+    //   },
+    //   {
+    //     name: "Afternoon Slot",
+    //     startTime: "14:00", // 2 PM
+    //     endTime: "17:00",   // 5 PM
+    //     quotaForSlot: "50", // example quota
+    //   }
+    // ];
+    // // Insert into MongoDB
+    // await Slot.insertMany(slots);
+    // console.log("Slots inserted successfully ✅");
 
 // after all routes
 import { MESSAGES } from "./config/constants.js";

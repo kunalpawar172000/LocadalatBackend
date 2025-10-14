@@ -1,4 +1,6 @@
-import User from "../models/userModel.js";
+import User from "./../models/userModel.js";
+import Session from "./../models/sessions.js"
+import mongoose from "mongoose"
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
@@ -52,6 +54,10 @@ export const createUser = async (req, res) => {
         if (!result) {
             return res.status(500).json({ isSuccess: false, message: MESSAGES.FAILED_CREATE_USER });
         }
+        // create new active session
+        // const sessionId = new mongoose.Types.ObjectId().toString();
+        // const session = new Session({ userId: result._id, sessionId });
+        // await session.save();
         res.status(201).json({
             isSuccess: true,
             message: MESSAGES.USER_CREATED
@@ -98,14 +104,25 @@ export const login = async (req, res) => {
         if (!bcrypt.compareSync(password, user.password)) {
             return res.status(200).json({ isSuccess: false, message: MESSAGES.INVALID_CREDENTIALS });
         }
+
+
+
+        const sessionForUserAlreadyExist = await Session.findOne({ userId: user._id, isActive: true });
+        if (sessionForUserAlreadyExist) {
+            // deactivate old session
+            await Session.findByIdAndUpdate(sessionForUserAlreadyExist._id, { isActive: false });
+        }
+        const sessionId = await new mongoose.Types.ObjectId().toString();
+        // create new active session
+        const session = new Session({ userId: user._id, sessionId });
+        await session.save();
+
         // create JWT token
         const token = jwt.sign(
-            { email: user.email, id: user._id, name: user.name },
+            { email: user.email, id: user._id, name: user.name, sessionId },
             process.env.JWT_SECRET,
             { expiresIn: "30d" }
         );
-
-        await User.findByIdAndUpdate(user._id, { isLoggedIn: true });
 
         // send cookie
         // res.cookie("access_token", token, { httpOnly: true, sameSite: "none", secure: true });

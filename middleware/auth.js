@@ -1,7 +1,8 @@
 // auth.js
 import jwt from "jsonwebtoken";
+import Session from "./../models/sessions.js"
 import dotenv from "dotenv";
-import { MESSAGES } from "../config/constants.js";
+import { MESSAGES, ERRORS } from "../config/constants.js";
 dotenv.config({ path: "./../config/config.env" });
 
 // full paths since middleware is at "/"
@@ -15,7 +16,7 @@ const PUBLIC_PATHS = [
   "/api/slot/getSlots",
 ];
 
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   // Skip OPTIONS requests
   //   if (req.method === "OPTIONS") {
   //     return next();
@@ -36,6 +37,11 @@ export const authenticateToken = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const sessionForUserAlreadyExist = await Session.findOne({ sessionId: payload.sessionId, isActive: true });
+    if (!sessionForUserAlreadyExist) {
+      return res.status(401).json({ isSuccess: false, message: MESSAGES.SESSION_EXPIRED });
+    }
+
     req.user = payload;
     return next();
   } catch (err) {

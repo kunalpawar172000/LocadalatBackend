@@ -9,8 +9,7 @@ export const ERRORS = {
   DATES_REQUIRED: 'Both fromDate and toDate are required',
   INVALID_DATE_FORMAT: 'Invalid date format. Provide valid date strings',
   NO_BOOKINGS_IN_RANGE: 'No bookings found within the specified date range',
-  INTERNAL: 'Internal Server Error'
-};
+  INTERNAL: 'Internal Server Error'};
 
 export const MESSAGES = {
   USER_CREATED: 'User created successfully',
@@ -56,6 +55,7 @@ export const MESSAGES = {
   FAILED_DELETE_WEEKOFF: 'Failed to delete Weekoff ',
   UNAUTHORIZED: 'Unauthorized',
   INVALID_TOKEN: 'Invalid token',
+  SESSION_EXPIRED:"Session has expired. Please log in again to continue",
   NOT_FOUND_ROUTE: 'No API found for this route',
 
   SLOT_UPDATED_SUCCESS: " Slot updated successfully",
