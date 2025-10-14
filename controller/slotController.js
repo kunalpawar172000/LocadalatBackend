@@ -229,7 +229,7 @@ export const slotAvailabilityByDays = async (req, res) => {
 
         // Fetch all active slots
         const slots = await Slot.find({ isActive: true }).select(
-            "_id quotaForSlot"
+            "_id name startTime endTime quotaForSlot"
         );
 
         // Fetch bookings for 15 days from start date
@@ -310,6 +310,9 @@ export const slotAvailabilityByDays = async (req, res) => {
 
                     return {
                         slotId: slot._id,
+                        slotName: slot.name,
+                        startTime: slot.startTime,
+                        endTime: slot.endTime,
                         available
                     };
                 }) : null;
