@@ -6,6 +6,7 @@ import { ERRORS } from "../config/constants.js";
 
 dotenv.config({ path: "./config/config.env" });
 
+
 // Create a new booking/appointment
 export const createBooking = async (req, res) => {
   try {
